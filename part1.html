@@ -1,0 +1,101 @@
+<!doctype html> 
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8" />
+    <title>Making your first Phaser 3 Game - Part 1</title>
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<script type="text/javascript">
+
+    var config = {
+        type: Phaser.AUTO,
+        width: 1000,
+        height: 1000,
+        physics: {
+            default: 'arcade',
+            arcade: {
+                gravity: { y: 0 },
+                debug: false
+            }
+        },
+        scene: {
+            preload: preload,
+            create: create,
+            update: update
+        }
+    };
+
+    var game = new Phaser.Game(config);
+
+    var background;
+    var player;
+    var key;
+
+    function preload ()
+    {
+        this.load.image('space', 'assets/space.jpg');
+        this.load.image('plane', 'assets/plane.png');
+        this.load.image('star', 'assets/star.png');
+        this.load.image('bomb', 'assets/bomb.png');
+        this.load.spritesheet('dude', 
+            'assets/dude.png',
+            { frameWidth: 32, frameHeight: 48 }
+        );
+    }      
+
+    function create ()
+    {
+        background = this.add.tileSprite(500, 500, 1000, 1000, 'space');
+        player = this.physics.add.sprite(500, 500, 'plane')
+        key = this.input.keyboard.createCursorKeys();
+    }
+
+    function update ()
+    {
+        if (key.up.isDown) {
+            if (player.angle < 180 && player.angle > 0) {
+                player.angle -= 5;
+            }
+            if (player.angle > -180 && player.angle < 0) {
+                player.angle +=5;
+            }
+        }
+        if (key.down.isDown) {
+            if (player.angle < 0) {
+                player.angle -= 5;
+            }
+            if (player.angle > 0) {
+                player.angle +=5;
+            }
+        }
+        if (key.right.isDown) {
+            if (player.angle > -90 && player.angle < 90) {
+                player.angle += 5;
+            }
+            if (player.angle < -90 || player.angle > 90) {
+                player.angle -=5;
+            }
+        }
+        if (key.left.isDown) {
+            if (player.angle < 90 && player.angle > -90) {
+                player.angle -= 5;
+            }
+            if (player.angle > 90 || player.angle < -90) {
+                player.angle +=5;
+            }
+        }
+        background.tilePositionX += Math.sin(Math.PI*player.angle/180)*20;
+        background.tilePositionY -= Math.cos(Math.PI*player.angle/180)*20;
+    }
+
+</script>
+
+</body>
+</html>
