@@ -60,36 +60,36 @@
     function update ()
     {
         if (key.up.isDown) {
-            if (player.angle < 180 && player.angle > 0) {
-                player.angle -= 5;
-            }
-            if (player.angle > -180 && player.angle < 0) {
-                player.angle +=5;
-            }
+            let turning = this.add.tween({
+                targets: player,
+                angle: 0,
+                ease: 'Linear',
+                duration: 400
+            });
         }
         if (key.down.isDown) {
-            if (player.angle < 0) {
-                player.angle -= 5;
-            }
-            if (player.angle > 0) {
-                player.angle +=5;
-            }
+            let turning = this.add.tween({
+                targets: player,
+                angle: 180,
+                ease: 'Linear',
+                duration: 400
+            });
         }
         if (key.right.isDown) {
-            if (player.angle > -90 && player.angle < 90) {
-                player.angle += 5;
-            }
-            if (player.angle < -90 || player.angle > 90) {
-                player.angle -=5;
-            }
+            let turning = this.add.tween({
+                targets: player,
+                angle: 90,
+                ease: 'Linear',
+                duration: 400
+            });
         }
         if (key.left.isDown) {
-            if (player.angle < 90 && player.angle > -90) {
-                player.angle -= 5;
-            }
-            if (player.angle > 90 || player.angle < -90) {
-                player.angle +=5;
-            }
+            let turning = this.add.tween({
+                targets: player,
+                angle: -90,
+                ease: 'Linear',
+                duration: 400
+            });
         }
         background.tilePositionX += Math.sin(Math.PI*player.angle/180)*20;
         background.tilePositionY -= Math.cos(Math.PI*player.angle/180)*20;
