@@ -13,6 +13,7 @@ class Goblin extends Phaser.GameObjects.Sprite {
       this.scene.add.existing(this);
       this.alive = true;
     }
+
     update () {
         if (!this.alive) {
             return;
@@ -35,7 +36,11 @@ class Goblin extends Phaser.GameObjects.Sprite {
         if (((player.y - this.y)**2 + (player.x - this.x)**2) <= 10000 && health > 0) {
             health -= 0.5;
         }
+        if (this.x < -500 || this.x > 1500 || this.y < -500 || this.y > 1500) {
+            this.die();
+        }
     }
+
     die () {
         this.alive = false;
         this.scene.goblins.remove(this);
@@ -80,7 +85,23 @@ class GameScene extends Phaser.Scene {
             goblin.update();
         });
         if (this.goblins.getChildren().length < 5) {
-            this.goblins.add(new Goblin(this, 900*Math.random()+50, -100, 'goblin'));
+            var x;
+            var y;
+            var choice = Phaser.Math.RND.pick([1,2,3,4,])
+            if (choice == 1) {
+                x = 900*Math.random()+50;
+                y = -100;
+            } else if (choice == 2) {
+                x = 900*Math.random()+50;
+                y = 1100;
+            } else if (choice == 3) {
+                x = -100;
+                y = 900*Math.random()+50;
+            } else if (choice == 4) {
+                x = 1100;
+                y = 900*Math.random()+50;
+            }
+            this.goblins.add(new Goblin(this, x, y, 'goblin'));
         }
         if (key.up.isDown) {
             let turning = this.add.tween({
