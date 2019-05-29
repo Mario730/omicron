@@ -18,6 +18,13 @@ class Goblin extends Phaser.GameObjects.Sprite {
             return;
         }
         if (((player.y - this.y)**2 + (player.x - this.x)**2) > 10000) {
+            if (this.x < 500) {
+                this.x += (Math.cos(Math.atan((500-this.y)/(500-this.x))))*10;
+                this.y += (Math.sin(Math.atan((500-this.y)/(500-this.x))))*10;
+            } else {
+                this.x -= (Math.cos(Math.atan((500-this.y)/(500-this.x))))*10;
+                this.y -= (Math.sin(Math.atan((500-this.y)/(500-this.x))))*10;
+            }
             if (key.shift.isDown && power > 3) {
                 this.x -= Math.sin(Math.PI*player.angle/180)*20;
                 this.y += Math.cos(Math.PI*player.angle/180)*20;
@@ -26,7 +33,7 @@ class Goblin extends Phaser.GameObjects.Sprite {
             this.y += Math.cos(Math.PI*player.angle/180)*20;
         }
         if (((player.y - this.y)**2 + (player.x - this.x)**2) <= 10000 && health > 0) {
-            health -= 1;
+            health -= 0.5;
         }
     }
     die () {
