@@ -1,76 +1,48 @@
-<!doctype html> 
-<html lang="en"> 
-<head> 
-    <meta charset="UTF-8" />
-    <title>Making your first Phaser 3 Game - Part 1</title>
-    <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
-    <style type="text/css">
-        body {
-            margin: 0;
-        }
-    </style>
-</head>
-<body>
-
-<script type="text/javascript">
-
-    var config = {
-        type: Phaser.AUTO,
-        width: 1000,
-        height: 1000,
-        physics: {
-            default: 'arcade',
-            arcade: {
-                gravity: { y: 0 },
-                debug: false
-            }
-        },
-        scene: {
-            preload: preload,
-            create: create,
-            update: update
-        }
-    };
-
-    var game = new Phaser.Game(config);
-
-    var background;
-    var player;
-    var key;
-    var power = 99;
-    var keyhold;
-    class Goblin extends Phaser.Physics.Arcade.Sprite {
-        constructor (scene, x, y, texture) {
-            super(scene, x, y, texture);
-        }
-        update () {
-            if (key.shift.isDown && power > 3) {
-                this.x += Math.sin(Math.PI*player.angle/180)*20;
-                this.y-= Math.cos(Math.PI*player.angle/180)*20;
-            }
+// this.scene.add('GameScene');
+   
+var background;
+var player;
+var key;
+var power = 99;
+var keyhold;
+var shock;
+class Goblin extends Phaser.GameObjects.Sprite {
+    constructor (scene, x, y, key) {
+        super(scene, x, y, key);
+    }
+    update () {
+        if (key.shift.isDown && power > 3) {
             this.x += Math.sin(Math.PI*player.angle/180)*20;
-            this.y -= Math.cos(Math.PI*player.angle/180)*20;
+            this.y-= Math.cos(Math.PI*player.angle/180)*20;
         }
+        this.x += Math.sin(Math.PI*player.angle/180)*20;
+        this.y -= Math.cos(Math.PI*player.angle/180)*20;
+    }
+}
+
+class GameScene extends Phaser.Scene {
+    constructor() {
+        super({key: 'GameScene'});
     }
 
-    function preload () {
+    preload () {
         this.load.image('space', 'assets/space.jpg');
         this.load.image('plane', 'assets/plane.png');
         this.load.image('boost', 'assets/plane-boost.png');
         this.load.image('shock', 'assets/electricity.png');
         this.load.image('goblin', 'assets/goblin.png');
     }      
-
-    function create () {
+        
+    create () {
         background = this.add.tileSprite(500, 500, 1000, 1000, 'space');
         player = this.physics.add.sprite(500, 500, 'plane')
         key = this.input.keyboard.createCursorKeys();
         shock = this.add.image(500, 500, 'shock').setScale(0.7);
         shock.alpha = 0;
-        new Goblin(this, 500, 0, 'goblin');
+        // new Goblin(GameScene, 500, 0, 'goblin');
     }
 
-    function update () {
+    update () {
         if (key.up.isDown) {
             let turning = this.add.tween({
                 targets: player,
@@ -146,10 +118,6 @@
             }
             graphics.fillRectShape(bar);
         }
-        Goblin().update();
+        // new Goblin().update();
     }
-
-</script>
-
-</body>
-</html>
+}
