@@ -12,4 +12,3 @@ var config = {
     scene: [GameScene]
 };
 var game = new Phaser.Game(config);
-// scene.sys.add('GameScene', )
