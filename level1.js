@@ -5,6 +5,7 @@ var power = 99;
 var health = 99;
 var keyhold;
 var shock;
+var playerscore;
 class Goblin extends Phaser.GameObjects.Sprite {
     constructor(scene, x, y, key) {
       super(scene, x, y, key);
@@ -82,6 +83,11 @@ class GameScene extends Phaser.Scene {
     }
 
     update () {
+        this.add.text(850, 20, "Score: " + playerscore, {
+            color: '#FFFFFF',
+            fontFamily: 'monospace',
+            fontSize: 20
+        })
         this.goblins.getChildren().forEach((goblin) => {
             goblin.update();
         });
@@ -104,37 +110,11 @@ class GameScene extends Phaser.Scene {
             }
             this.goblins.add(new Goblin(this, x, y, 'goblin'));
         }
-        if (key.up.isDown) {
-            let turning = this.add.tween({
-                targets: player,
-                angle: 0,
-                ease: 'Linear',
-                duration: 400
-            });
-        }
-        if (key.down.isDown) {
-            let turning = this.add.tween({
-                targets: player,
-                angle: 180,
-                ease: 'Linear',
-                duration: 400
-            });
-        }
         if (key.right.isDown) {
-            let turning = this.add.tween({
-                targets: player,
-                angle: 90,
-                ease: 'Linear',
-                duration: 400
-            });
+            player.angle += 10;
         }
         if (key.left.isDown) {
-            let turning = this.add.tween({
-                targets: player,
-                angle: 270,
-                ease: 'Linear',
-                duration: 400
-            });
+            player.angle -= 10;
         }
         if (key.shift.isDown && power > 3) {
             background.tilePositionX += Math.sin(Math.PI*player.angle/180)*20;
@@ -161,6 +141,7 @@ class GameScene extends Phaser.Scene {
                         this.goblins.getChildren().forEach((goblin) => {
                             if (((player.y - goblin.y)**2 + (player.x - goblin.x)**2) <= 22500) {
                                 goblin.die();
+                                playerscore++;
                             }
                         });
                     }
