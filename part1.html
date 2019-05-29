@@ -39,28 +39,38 @@
     var key;
     var power = 99;
     var keyhold;
-    var flame;
+    class Goblin extends Phaser.Physics.Arcade.Sprite {
+        constructor (scene, x, y, texture) {
+            super(scene, x, y, texture);
+        }
+        update () {
+            if (key.shift.isDown && power > 3) {
+                this.x += Math.sin(Math.PI*player.angle/180)*20;
+                this.y-= Math.cos(Math.PI*player.angle/180)*20;
+            }
+            this.x += Math.sin(Math.PI*player.angle/180)*20;
+            this.y -= Math.cos(Math.PI*player.angle/180)*20;
+        }
+    }
 
-    function preload ()
-    {
+    function preload () {
         this.load.image('space', 'assets/space.jpg');
         this.load.image('plane', 'assets/plane.png');
         this.load.image('boost', 'assets/plane-boost.png');
-        this.load.image('goblin', 'assets/goblin.png');
         this.load.image('shock', 'assets/electricity.png');
+        this.load.image('goblin', 'assets/goblin.png');
     }      
 
-    function create ()
-    {
+    function create () {
         background = this.add.tileSprite(500, 500, 1000, 1000, 'space');
         player = this.physics.add.sprite(500, 500, 'plane')
         key = this.input.keyboard.createCursorKeys();
         shock = this.add.image(500, 500, 'shock').setScale(0.7);
         shock.alpha = 0;
+        new Goblin(this, 500, 0, 'goblin');
     }
 
-    function update ()
-    {
+    function update () {
         if (key.up.isDown) {
             let turning = this.add.tween({
                 targets: player,
@@ -136,6 +146,7 @@
             }
             graphics.fillRectShape(bar);
         }
+        Goblin().update();
     }
 
 </script>
