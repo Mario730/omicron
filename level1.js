@@ -12,6 +12,7 @@ class Goblin extends Phaser.GameObjects.Sprite {
       this.setScale(0.4);
       this.scene.add.existing(this);
       this.alive = true;
+      this.goblinspeed = 15;
     }
 
     update () {
@@ -20,11 +21,11 @@ class Goblin extends Phaser.GameObjects.Sprite {
         }
         if (((player.y - this.y)**2 + (player.x - this.x)**2) > 10000) {
             if (this.x < 500) {
-                this.x += (Math.cos(Math.atan((500-this.y)/(500-this.x))))*10;
-                this.y += (Math.sin(Math.atan((500-this.y)/(500-this.x))))*10;
+                this.x += (Math.cos(Math.atan((500-this.y)/(500-this.x))))*this.goblinspeed;
+                this.y += (Math.sin(Math.atan((500-this.y)/(500-this.x))))*this.goblinspeed;
             } else {
-                this.x -= (Math.cos(Math.atan((500-this.y)/(500-this.x))))*10;
-                this.y -= (Math.sin(Math.atan((500-this.y)/(500-this.x))))*10;
+                this.x -= (Math.cos(Math.atan((500-this.y)/(500-this.x))))*this.goblinspeed;
+                this.y -= (Math.sin(Math.atan((500-this.y)/(500-this.x))))*this.goblinspeed;
             }
             if (key.shift.isDown && power > 3) {
                 this.x -= Math.sin(Math.PI*player.angle/180)*20;
