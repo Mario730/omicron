@@ -1,11 +1,16 @@
 var background;
 var player;
 var key;
-var power = 99;
-var health = 99;
+var power = 100;
+var health = 100;
+var healthbar;
+var powerbar;
+var healthtick = 0;
 var keyhold;
 var shock;
-var playerscore;
+var playerscore = 0;
+var scoretext;
+
 class Goblin extends Phaser.GameObjects.Sprite {
     constructor(scene, x, y, key) {
       super(scene, x, y, key);
@@ -37,8 +42,11 @@ class Goblin extends Phaser.GameObjects.Sprite {
         }
         if (((player.y - this.y)**2 + (player.x - this.x)**2) <= 10000 && health > 0) {
             health -= 0.5;
+            this.scene.goblins.remove(this);
+            this.scene.circle.add(this);
+            healthtick += 0.5;
         }
-        if (this.x < -500 || this.x > 1500 || this.y < -500 || this.y > 1500) {
+        if (this.x < -200 || this.x > 1200 || this.y < -200 || this.y > 1200) {
             this.die();
         }
     }
@@ -46,8 +54,9 @@ class Goblin extends Phaser.GameObjects.Sprite {
     die () {
         this.alive = false;
         this.scene.goblins.remove(this);
+        this.scene.circle.remove(this);
         this.setTint(0xFF8888);
-        let goblindeath = this.scene.add.tween({
+        this.scene.add.tween({
             targets: this,
             scaleX: 0,
             scaleY: 0,
@@ -77,21 +86,36 @@ class GameScene extends Phaser.Scene {
         background = this.add.tileSprite(500, 500, 1000, 1000, 'space');
         player = this.physics.add.sprite(500, 500, 'plane')
         key = this.input.keyboard.createCursorKeys();
-        shock = this.add.image(500, 500, 'shock').setScale(0.7);
+        this.add.rectangle(500, 875, 600, 50, 0xFF000000);
+        this.add.rectangle(500, 800, 600, 50, 0xFF000000);
+        powerbar = this.add.rectangle(500, 875, 596, 46, 0xFF668CFF);
+        healthbar = this.add.rectangle(500, 800, 596, 46, 0xFF71DA71);
+        shock = this.add.image(500, 500, 'shock').setScale(0.9);
         shock.alpha = 0;
         this.goblins = this.add.group();
-    }
-
-    update () {
-        this.add.text(850, 20, "Score: " + playerscore, {
+        this.circle = this.add.group();
+        scoretext = this.add.text(850, 20, "Score: " + playerscore, {
             color: '#FFFFFF',
             fontFamily: 'monospace',
             fontSize: 20
         })
+        var labels = this.add.text(184, 897, "Power   Health", {
+            color: '#FFFFFF',
+            fontFamily: 'monospace',
+            fontSize: 15
+        })
+        labels.angle = -90;
+    }
+
+    update () {
+        scoretext.setText("Score: " + playerscore);
         this.goblins.getChildren().forEach((goblin) => {
             goblin.update();
         });
-        if (this.goblins.getChildren().length < 5) {
+        this.circle.getChildren().forEach((goblin) => {
+            goblin.update();
+        })
+        if (this.goblins.getChildren().length + this.circle.getChildren().length < 10) {
             var x;
             var y;
             var choice = Phaser.Math.RND.pick([1,2,3,4,])
@@ -112,9 +136,17 @@ class GameScene extends Phaser.Scene {
         }
         if (key.right.isDown) {
             player.angle += 10;
+            Phaser.Actions.RotateAroundDistance(this.circle.getChildren(), {x: 500, y: 500}, Math.PI/18, 80);
+            this.circle.getChildren().forEach((goblin) => {
+                goblin.angle += 10;
+            });
         }
         if (key.left.isDown) {
             player.angle -= 10;
+            Phaser.Actions.RotateAroundDistance(this.circle.getChildren(), {x: 500, y: 500}, -Math.PI/18, 80);
+            this.circle.getChildren().forEach((goblin) => {
+                goblin.angle -= 10;
+            });
         }
         if (key.shift.isDown && power > 3) {
             background.tilePositionX += Math.sin(Math.PI*player.angle/180)*20;
@@ -130,16 +162,20 @@ class GameScene extends Phaser.Scene {
         if (key.space.isDown && power > 10) {
             if (!keyhold) {
                 shock.angle = 360*Math.random();
-                let shockopacity = this.add.tween({
+                this.add.tween({
                     targets: shock,
                     alpha: 1,
                     ease: 'Linear',
-                    duration: 50,
+                    duration: 80,
                     yoyo: true,
                     onComplete: () => {
                         shock.alpha = 0;
+                        this.circle.getChildren().forEach((goblin) => {
+                            goblin.die();
+                            playerscore++;
+                        });
                         this.goblins.getChildren().forEach((goblin) => {
-                            if (((player.y - goblin.y)**2 + (player.x - goblin.x)**2) <= 22500) {
+                            if (((player.y - goblin.y)**2 + (player.x - goblin.x)**2) <= 40000) {
                                 goblin.die();
                                 playerscore++;
                             }
@@ -155,36 +191,61 @@ class GameScene extends Phaser.Scene {
         }
         if (power < 100) {
             power += 1;
-            var powerrect = new Phaser.Geom.Rectangle(200, 850, 600, 50);
-            var graphics = this.add.graphics({ fillStyle: {color: "black"}});
-            graphics.fillRectShape(powerrect);
-            var powerbar = new Phaser.Geom.Rectangle(203, 853, power*594/100, 44);
-            if (power > 20) {
-                var graphics = this.add.graphics({ fillStyle: {color: 0xFF0000FF}});
-            }
-            else {
-                var graphics = this.add.graphics({ fillStyle: {color: 0xFFFF0000}});
-            }
-            graphics.fillRectShape(powerbar);
+        }
+        if (power > 100) {
+            power = 100;
         }
         if (health < 100) {
-            if (this.goblins.getChildren().every((goblin) => ((player.y - goblin.y)**2 + (player.x - goblin.x)**2) > 10000)) {
+            if (this.circle.getChildren().length == 0) {
                 health += 1;
             }
-            var healthrect = new Phaser.Geom.Rectangle(200, 775, 600, 50);
-            var graphics = this.add.graphics({ fillStyle: {color: "black"}});
-            graphics.fillRectShape(healthrect);
-            var healthbar = new Phaser.Geom.Rectangle(203, 778, health*594/100, 44);
-            if (health > 20) {
-                var graphics = this.add.graphics({ fillStyle: {color: 0xFF00FF00}});
-            }
-            else {
-                var graphics = this.add.graphics({ fillStyle: {color: 0xFFFF0000}});
-            }
-            graphics.fillRectShape(healthbar);
+        }
+        if (health > 100) {
+            health = 100;
         }
         if (health == 0) {
             this.scene.pause();
-        } 
+            this.add.text(250, 130, "Game Over!", {
+                fontFamily: 'monospace',
+                fontSize: 48,
+                color: '#ffffff',
+                fontStyle: 'bold'
+            })
+            scoretext.setText(' ');
+            this.add.text(300, 180, "Score: " + playerscore, {
+                fontFamily: 'monospace',
+                fontSize: 36,
+                color: '#ffffff',
+                fontStyle: 'bold'
+            })
+        }
+        if (healthtick >= 20) {
+            healthtick = 0;
+            this.tweens.addCounter({
+                from: 255,
+                to: 0,
+                duration: 80,
+                onStart: () => {
+                    player.setTint(0xFF8888);
+                },
+                onComplete: () => {
+                    player.clearTint();
+                }
+            });
+        }
+        healthbar.width = health*596/100;
+        if (health > 20) {
+            healthbar.fillColor = 0xFF71DA71;
+        }
+        else {
+            healthbar.fillColor = 0xFFFF0000;
+        }
+        powerbar.width = power*596/100;
+        if (power > 20) {
+            powerbar.fillColor = 0xFF668CFF;
+        }
+        else {
+            powerbar.fillColor = 0xFFFF0000;
+        }
     }
 }
