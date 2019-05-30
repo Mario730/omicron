@@ -86,10 +86,10 @@ class GameScene extends Phaser.Scene {
         background = this.add.tileSprite(500, 500, 1000, 1000, 'space');
         player = this.physics.add.sprite(500, 500, 'plane')
         key = this.input.keyboard.createCursorKeys();
-        this.add.rectangle(500, 875, 600, 50, 0xFF000000);
-        this.add.rectangle(500, 800, 600, 50, 0xFF000000);
-        powerbar = this.add.rectangle(500, 875, 596, 46, 0xFF668CFF);
-        healthbar = this.add.rectangle(500, 800, 596, 46, 0xFF71DA71);
+        this.add.rectangle(500, 875, 600, 50, 0xFF000000).setDepth(1);
+        this.add.rectangle(500, 800, 600, 50, 0xFF000000).setDepth(1);
+        powerbar = this.add.rectangle(500, 875, 596, 46, 0xFF668CFF).setDepth(2);
+        healthbar = this.add.rectangle(500, 800, 596, 46, 0xFF71DA71).setDepth(2);
         shock = this.add.image(500, 500, 'shock').setScale(0.9);
         shock.alpha = 0;
         this.goblins = this.add.group();
@@ -105,6 +105,8 @@ class GameScene extends Phaser.Scene {
             fontSize: 15
         })
         labels.angle = -90;
+        scoretext.setDepth(1);
+        labels.setDepth(1);
     }
 
     update () {
