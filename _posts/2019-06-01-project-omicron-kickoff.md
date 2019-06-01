@@ -1,0 +1,8 @@
+---
+layout: post
+title: "Project Omicron Kickoff"
+---
+
+This week I mostly worked on relearning JavaScript and learning Phaser. I spent most of the week working on a plane game to hone my skills, in which the player flies around shocking goblins that try to cling to the plane. I started off by just trying to figure out how to make a background that tiles. Once I figured that out, I needed to make the background scroll based on the plane’s direction. I did figure this out, but I had to implement trig to get the background to scroll as the player turned. Originally, I had the player turning system based on the arrow keys as up, down, left, and right. But after a while, I realized that it would be better if the player could move in more than four directions. So, I changed the controls to just the left and right arrow keys so the player could rotate the plane, and would always be flying in the desired direction.
+
+To make the shock work, I just added the shock sprite on top of the plane but made it completely transparent. Once I pressed the spacebar, it would start a tween that slowly made the electric sprite appear opaque for a tiny bit and then disappear again. However, this did not work like I wanted it to, so I used some code that essentially didn’t let the user hold down the spacebar and continually use the shock capability. I then added a boost option, where the user can hold down shift to go faster. Brock created a new sprite that was just the plane sprite with flames at the back, and then when the user pressed shift, the plane sprite was replaced with that image. In addition, when the user pressed shift, the background scrolled twice as fast, which effectively speeds up the plane.
