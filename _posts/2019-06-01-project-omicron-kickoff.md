@@ -11,4 +11,4 @@ To make the shock work, I just added the shock sprite on top of the plane but ma
 
 I also created a class for all of the goblins, and a group for the goblins. I also created a group for the goblins that stick to the plane, and made sure every goblin was in one of those two groups. In the class for goblins, I added a function that essentially "kills" the goblin. So when the player uses shock and the goblins are within a radius of 200 pixels, they are removed from whatever group they are in, and then removed from the world. I have some variables that change how the game is played, like 'goblinspeed', which determines how quickly the goblins chase the plane.
 
-Based off of the last week, I think that I need to take more screenshots and commit more frequently, since there is a lack of documentation throughout the creation of the plane game. [Play the Plane Game Here](/plane_game/index.html)
+Based off of the last week, I think that I need to take more screenshots and commit more frequently, since there is a lack of documentation throughout the creation of the plane game. [Play the Plane Game Here](/omicron/plane_game/)
