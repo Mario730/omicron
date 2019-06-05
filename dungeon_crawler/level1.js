@@ -2,6 +2,7 @@ class object extends Phaser.GameObjects.Image {
     constructor(scene, x, y, texture, frame) {
         super(scene, x, y, texture, frame);
         this.scene = scene;
+        this.setScale(4);
         this.scene.add.existing(this);
     }
 
@@ -35,8 +36,8 @@ class SceneMain extends Phaser.Scene {
             frameRate: 8,
             repeat: -1
         });
-        new object(this, 500, 500, 'tilesheet', 1);
-        this.add.sprite(1000, 500, '1hero1').play('1hero-idle');
+        new object(this, 512, 256, 'tilesheet', 1);
+        this.add.sprite(512, 256, '1hero1').play('1hero-idle');
     }
 
     update() {
