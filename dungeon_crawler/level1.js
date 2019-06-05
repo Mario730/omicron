@@ -16,7 +16,7 @@ class SceneMain extends Phaser.Scene {
     }
     
     preload() {
-        this.load.spritesheet('tilesheet', 'assets/character_and_tileset/Dungeon_Tileset', {frameWidth: 16, frameHeight: 16});
+        this.load.spritesheet('tilesheet', 'assets/character_and_tileset/Dungeon_Tileset.png', {frameWidth: 16, frameHeight: 16});
         this.load.image('1hero1', 'assets/Character_animation/priests_idle/priest2/v1/priest2_v1_1.png');
         this.load.image('1hero2', 'assets/Character_animation/priests_idle/priest2/v1/priest2_v1_2.png');
         this.load.image('1hero3', 'assets/Character_animation/priests_idle/priest2/v1/priest2_v1_3.png');
