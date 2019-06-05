@@ -35,7 +35,7 @@ class SceneMain extends Phaser.Scene {
             frameRate: 8,
             repeat: -1
         });
-        new object(this, 500, 500, 'tilesheet', 23);
+        new object(this, 500, 500, 'tilesheet', 1);
         this.add.sprite(1000, 500, '1hero1').play('1hero-idle');
     }
 
