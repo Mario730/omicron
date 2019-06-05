@@ -1,3 +1,15 @@
+class object extends Phaser.GameObject.Image {
+    constructor(scene, x, y, texture, frame) {
+        super(scene, x, y, texture, frame);
+        this.scene = scene;
+        this.scene.add.existing(this);
+    }
+
+    update() {
+
+    }
+}
+
 class SceneMain extends Phaser.Scene {
     constructor() {
         super({key: 'SceneMain'});
@@ -23,6 +35,7 @@ class SceneMain extends Phaser.Scene {
             frameRate: 8,
             repeat: -1
         });
+        new object(this, 500, 500, 'tilesheet', 23);
         this.add.sprite(1000, 500, '1hero1').play('1hero-idle');
     }
 
