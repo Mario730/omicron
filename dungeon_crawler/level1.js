@@ -9,6 +9,7 @@ class EnvironmentObject extends Phaser.GameObjects.Image {
         this.setOrigin(0);
         this.setScale(2);
         this.scene.add.existing(this);
+        this.scene.physics.world.enable(this, Phaser.STATIC_BODY);
     }
 }
 
@@ -18,13 +19,14 @@ class Wall extends EnvironmentObject {
     }
 }
 
-class Being extends Phaser.Physics.Sprite {
+class Being extends Phaser.GameObjects.Sprite {
     constructor(scene, x, y, texture) {
         super(scene, x, y, texture);
         this.scene = scene;
         this.setOrigin(0);
         this.setScale(2);
         this.scene.add.existing(this);
+        this.scene.physics.world.enable(this);
     }
 }
 
@@ -93,11 +95,11 @@ class SceneMain extends Phaser.Scene {
     update() {
         if (left.isDown) {
             hero.setFlipX(true);
-            // hero.setVelocityX(-10);
+            hero.body.setVelocityX(-10);
         };
         if (right.isDown) {
             hero.setFlipX(false);
-            // hero.setVelocityX(10);
+            hero.body.setVelocityX(10);
         }
     }
 
