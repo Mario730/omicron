@@ -1,5 +1,7 @@
 var hero;
+var up;
 var left;
+var down;
 var right;
 
 class EnvironmentObject extends Phaser.GameObjects.Image {
@@ -16,6 +18,9 @@ class EnvironmentObject extends Phaser.GameObjects.Image {
 class Wall extends EnvironmentObject {
     constructor(scene, x, y, frame) {
         super(scene, x, y, frame);
+        this.body.setImmovable(true);
+        this.body.syncBounds = true;
+        this.scene.physics.add.collider(this, hero);
     }
 }
 
@@ -27,6 +32,7 @@ class Being extends Phaser.GameObjects.Sprite {
         this.setScale(2);
         this.scene.add.existing(this);
         this.scene.physics.world.enable(this);
+        this.body.syncBounds = true;
     }
 }
 
@@ -50,7 +56,9 @@ class SceneMain extends Phaser.Scene {
     }
 
     create() {
+        up = this.input.keyboard.addKey('W');
         left = this.input.keyboard.addKey('A');
+        down = this.input.keyboard.addKey('S');
         right = this.input.keyboard.addKey('D');
         this.anims.create({
             key: '1hero-idle',
@@ -73,6 +81,7 @@ class SceneMain extends Phaser.Scene {
         new EnvironmentObject(this, 15*32, 9*32, 31);
         new EnvironmentObject(this, 16*32, 9*32, 32);
         new EnvironmentObject(this, 17*32, 9*32, 34);
+        hero = new Hero(this, 16*32, 8*32, '1hero1').setScale(2).play('1hero-idle');
         new Wall(this, 14*32, 6*32, 0);
         new Wall(this, 15*32, 6*32, 1);
         new Wall(this, 16*32, 6*32, 2);
@@ -89,17 +98,25 @@ class SceneMain extends Phaser.Scene {
         new Wall(this, 14*32, 9*32, 30);
         new Wall(this, 14*32, 8*32, 20);
         new Wall(this, 14*32, 7*32, 10);
-        hero = new Hero(this, 16*32, 8*32, '1hero1').setScale(2).play('1hero-idle');
     }
 
     update() {
-        if (left.isDown) {
+        if (up.isDown) {
+            hero.body.setVelocityY(-64);
+        }
+        else if (left.isDown) {
             hero.setFlipX(true);
-            hero.body.setVelocityX(-10);
-        };
-        if (right.isDown) {
+            hero.body.setVelocityX(-64);
+        }
+        else if (down.isDown) {
+            hero.body.setVelocityY(64);
+        }
+        else if (right.isDown) {
             hero.setFlipX(false);
-            hero.body.setVelocityX(10);
+            hero.body.setVelocityX(64);
+        }
+        else {
+            hero.body.setVelocity(0, 0);
         }
     }
 
