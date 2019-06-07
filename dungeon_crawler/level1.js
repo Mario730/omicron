@@ -18,7 +18,7 @@ class Wall extends EnvironmentObject {
     }
 }
 
-class Being extends Phaser.Physics.Sprite {
+class Being extends Phaser.Physics.Arcade.Sprite {
     constructor(scene, x, y, texture) {
         super(scene, x, y, texture);
         this.scene = scene;
@@ -94,6 +94,7 @@ class SceneMain extends Phaser.Scene {
         if (left.isDown) {
             hero.setFlipX(true);
             // hero.setVelocityX(-10);
+            console.log(hero.VelocityX);
         };
         if (right.isDown) {
             hero.setFlipX(false);
