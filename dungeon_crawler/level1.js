@@ -1,8 +1,12 @@
 var hero;
 var up;
+var updown;
 var left;
+var leftdown;
 var down;
+var downdown;
 var right;
+var rightdown;
 
 class EnvironmentObject extends Phaser.GameObjects.Sprite {
     constructor(scene, x, y, frame) {
@@ -25,8 +29,8 @@ class Wall extends EnvironmentObject {
 }
 
 class Being extends Phaser.GameObjects.Sprite {
-    constructor(scene, x, y, texture) {
-        super(scene, x, y, texture);
+    constructor(scene, x, y, texture, frame) {
+        super(scene, x, y, texture, frame);
         this.scene = scene;
         this.setOrigin(0);
         this.setScale(2);
@@ -37,8 +41,9 @@ class Being extends Phaser.GameObjects.Sprite {
 }
 
 class Hero extends Being {
-    constructor(scene, x, y, texture) {
-        super(scene, x, y, texture);
+    constructor(scene, x, y, texture, frame) {
+        super(scene, x, y, texture, frame);
+        this.setScale(1.5);
     }
 }
 
@@ -49,10 +54,8 @@ class SceneMain extends Phaser.Scene {
     
     preload() {
         this.load.spritesheet('tilesheet', 'assets/character_and_tileset/Dungeon_Tileset.png', {frameWidth: 16, frameHeight: 16});
-        this.load.image('1hero1', 'assets/Character_animation/priests_idle/priest2/v1/priest2_v1_1.png');
-        this.load.image('1hero2', 'assets/Character_animation/priests_idle/priest2/v1/priest2_v1_2.png');
-        this.load.image('1hero3', 'assets/Character_animation/priests_idle/priest2/v1/priest2_v1_3.png');
-        this.load.image('1hero4', 'assets/Character_animation/priests_idle/priest2/v1/priest2_v1_4.png');
+        this.load.spritesheet('hero-idle', 'assets/Character_animation/hero/idle.png', {frameWidth: 16, frameHeight: 24});
+        this.load.spritesheet('hero-run', 'assets/Character_animation/hero/run.png', {frameWidth: 16, frameHeight: 24});
         this.load.image('sidetorch1', 'assets/items_and_trap_animation/torch/side_torch_1.png');
         this.load.image('sidetorch2', 'assets/items_and_trap_animation/torch/side_torch_2.png');
         this.load.image('sidetorch3', 'assets/items_and_trap_animation/torch/side_torch_3.png');
@@ -65,13 +68,32 @@ class SceneMain extends Phaser.Scene {
         down = this.input.keyboard.addKey('S');
         right = this.input.keyboard.addKey('D');
         this.anims.create({
-            key: '1hero',
-            frames: [
-                { key: '1hero1'},
-                { key: '1hero2'},
-                { key: '1hero3'},
-                { key: '1hero4'}
-            ],
+            key: 'heroidle',
+            frames: this.anims.generateFrameNumbers('hero-idle', {start: 8, end: 11}),
+            frameRate: 8,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'heroup',
+            frames: this.anims.generateFrameNumbers('hero-run', {start: 0, end: 3}),
+            frameRate: 8,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'heroleft',
+            frames: this.anims.generateFrameNumbers('hero-run', {start: 4, end: 7}),
+            frameRate: 8,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'herodown',
+            frames: this.anims.generateFrameNumbers('hero-run', {start: 8, end: 11}),
+            frameRate: 8,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'heroright',
+            frames: this.anims.generateFrameNumbers('hero-run', {start: 12, end: 15}),
             frameRate: 8,
             repeat: -1
         });
@@ -98,7 +120,7 @@ class SceneMain extends Phaser.Scene {
         new EnvironmentObject(this, 15*32, 9*32, 31);
         new EnvironmentObject(this, 16*32, 9*32, 32);
         new EnvironmentObject(this, 17*32, 9*32, 34);
-        hero = new Hero(this, 16*32, 8*32, '1hero1').play('1hero');
+        hero = new Hero(this, 16*32, 8*32, 'hero-idle', 8).play('heroidle');
         new Wall(this, 14*32, 6*32, 0);
         new Wall(this, 15*32, 6*32, 1);
         new Wall(this, 16*32, 6*32, 2);
@@ -118,25 +140,58 @@ class SceneMain extends Phaser.Scene {
     }
 
     update() {
+        hero.body.setVelocity(0, 0);
         if (up.isDown) {
             hero.body.setVelocityY(-64);
+            if (!updown) {
+                hero.play('heroup');
+                updown = true;
+            }
+        }
+        if (up.isUp) {
+            if (updown) {
+                hero.play('heroidle');
+                updown = false;
+            }
         }
         if (left.isDown) {
-            hero.setFlipX(true);
             hero.body.setVelocityX(-64);
+            if (!leftdown) {
+                hero.play('heroleft');
+                leftdown = true;
+            }
+        }
+        if (left.isUp) {
+            if (leftdown) {
+                hero.play('heroidle');
+                leftdown = false;
+            }
         }
         if (down.isDown) {
             hero.body.setVelocityY(64);
+            if (!downdown) {
+                hero.play('herodown');
+                downdown = true;
+            }
+        }
+        if (down.isUp) {
+            if (downdown) {
+                hero.play('heroidle');
+                downdown = false;
+            }
         }
         if (right.isDown) {
-            hero.setFlipX(false);
             hero.body.setVelocityX(64);
+            if (!rightdown) {
+                hero.play('heroright');
+                rightdown = true;
+            }
         }
-        if (up.isUp && down.isUp) {
-            hero.body.setVelocityY(0);
-        }
-        if (left.isUp && right.isUp) {
-            hero.body.setVelocityX(0);
+        if (right.isUp) {
+            if (rightdown) {
+                hero.play('heroidle');
+                rightdown = false;
+            }
         }
     }
 
