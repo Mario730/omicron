@@ -56,6 +56,7 @@ class SceneMain extends Phaser.Scene {
         this.load.spritesheet('tilesheet', 'assets/character_and_tileset/Dungeon_Tileset.png', {frameWidth: 16, frameHeight: 16});
         this.load.spritesheet('hero-idle', 'assets/Character_animation/hero/idle.png', {frameWidth: 16, frameHeight: 24});
         this.load.spritesheet('hero-run', 'assets/Character_animation/hero/run.png', {frameWidth: 16, frameHeight: 24});
+        this.load.spritesheet('hero-run', 'assets/Character_animation/hero/attack.png', {frameWidth: 24, frameHeight: 24});
         this.load.image('sidetorch1', 'assets/items_and_trap_animation/torch/side_torch_1.png');
         this.load.image('sidetorch2', 'assets/items_and_trap_animation/torch/side_torch_2.png');
         this.load.image('sidetorch3', 'assets/items_and_trap_animation/torch/side_torch_3.png');
@@ -68,8 +69,26 @@ class SceneMain extends Phaser.Scene {
         down = this.input.keyboard.addKey('S');
         right = this.input.keyboard.addKey('D');
         this.anims.create({
-            key: 'heroidle',
+            key: 'heroidleup',
+            frames: this.anims.generateFrameNumbers('hero-idle', {start: 0, end: 3}),
+            frameRate: 8,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'heroidleleft',
+            frames: this.anims.generateFrameNumbers('hero-idle', {start: 4, end: 7}),
+            frameRate: 8,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'heroidledown',
             frames: this.anims.generateFrameNumbers('hero-idle', {start: 8, end: 11}),
+            frameRate: 8,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'heroidleright',
+            frames: this.anims.generateFrameNumbers('hero-idle', {start: 12, end: 15}),
             frameRate: 8,
             repeat: -1
         });
@@ -98,6 +117,26 @@ class SceneMain extends Phaser.Scene {
             repeat: -1
         });
         this.anims.create({
+            key: 'heroattackdown',
+            frames: this.anims.generateFrameNumbers('hero-attack', {start: 0, end: 3}),
+            frameRate: 8
+        })
+        this.anims.create({
+            key: 'heroattackleft',
+            frames: this.anims.generateFrameNumbers('hero-attack', {start: 4, end: 7}),
+            frameRate: 8
+        })
+        this.anims.create({
+            key: 'heroattackup',
+            frames: this.anims.generateFrameNumbers('hero-attack', {start: 8, end: 11}),
+            frameRate: 8
+        })
+        this.anims.create({
+            key: 'heroattackright',
+            frames: this.anims.generateFrameNumbers('hero-attack', {start: 12, end: 15}),
+            frameRate: 8
+        })
+        this.anims.create({
             key: 'sidetorch',
             frames: [
                 { key: 'sidetorch1'},
@@ -120,7 +159,7 @@ class SceneMain extends Phaser.Scene {
         new EnvironmentObject(this, 15*32, 9*32, 31);
         new EnvironmentObject(this, 16*32, 9*32, 32);
         new EnvironmentObject(this, 17*32, 9*32, 34);
-        hero = new Hero(this, 16*32, 8*32, 'hero-idle', 8).play('heroidle');
+        hero = new Hero(this, 16*32, 8*32, 'hero-idle', 8).play('heroidledown');
         new Wall(this, 14*32, 6*32, 0);
         new Wall(this, 15*32, 6*32, 1);
         new Wall(this, 16*32, 6*32, 2);
@@ -150,7 +189,7 @@ class SceneMain extends Phaser.Scene {
         }
         if (up.isUp) {
             if (updown) {
-                hero.play('heroidle');
+                hero.play('heroidleup');
                 updown = false;
             }
         }
@@ -163,7 +202,7 @@ class SceneMain extends Phaser.Scene {
         }
         if (left.isUp) {
             if (leftdown) {
-                hero.play('heroidle');
+                hero.play('heroidleleft');
                 leftdown = false;
             }
         }
@@ -176,7 +215,7 @@ class SceneMain extends Phaser.Scene {
         }
         if (down.isUp) {
             if (downdown) {
-                hero.play('heroidle');
+                hero.play('heroidledown');
                 downdown = false;
             }
         }
@@ -189,7 +228,7 @@ class SceneMain extends Phaser.Scene {
         }
         if (right.isUp) {
             if (rightdown) {
-                hero.play('heroidle');
+                hero.play('heroidleright');
                 rightdown = false;
             }
         }
