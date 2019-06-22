@@ -1,4 +1,5 @@
 var hero;
+var heroDirection;
 var up;
 var updown;
 var left;
@@ -7,11 +8,74 @@ var down;
 var downdown;
 var right;
 var rightdown;
+var space;
+var spacedown;
 
-class EnvironmentObject extends Phaser.GameObjects.Sprite {
-    constructor(scene, x, y, frame) {
+class EnvironmentObject extends Phaser.GameObjects.Image {
+    constructor(scene, x, y, cellType) {
+        let frame = 0;
+        if (cellType == "7") {
+            frame = 0;
+        }
+        if (cellType == "8") {
+            const topwall = [1,2,3,4];
+            frame = topwall[Math.floor(Math.random()*topwall.length)];
+        }
+        if (cellType == "9") {
+            frame = 5;
+        }
+        if (cellType == "4") {
+            const leftwall = [10,20,30];
+            frame = leftwall[Math.floor(Math.random()*leftwall.length)];
+        }
+        if (cellType == "6") {
+            const rightwall = [15,25,35];
+            frame = rightwall[Math.floor(Math.random()*rightwall.length)];
+        }
+        if (cellType == "1") {
+            frame = 40;
+        }
+        if (cellType == "2") {
+            const bottomwall = [41,42,43,44];
+            frame = bottomwall[Math.floor(Math.random()*bottomwall.length)];
+        }
+        if (cellType == "3") {
+            frame = 45;
+        }
+        if (cellType == "q") {
+            frame = 11;
+        }
+        if (cellType == "w") {
+            const w = [12,13]
+            frame = w[Math.floor(Math.random()*w.length)];
+        }
+        if (cellType == "e") {
+            frame = 14;
+        }
+        if (cellType == "a") {
+            frame = 21;
+        }
+        if (cellType == "s") {
+            const s = [6,7,8,9,16,17,18,19,26,27,28,29];
+            frame = s[Math.floor(Math.random()*s.length)];
+        }
+        if (cellType == "d") {
+            frame = 24;
+        }
+        if (cellType == "z") {
+            frame = 31;
+        }
+        if (cellType == "x") {
+            const x = [32,33];
+            frame = x[Math.floor(Math.random()*x.length)];
+        }
+        if (cellType == "c") {
+            frame = 34;
+        }
         super(scene, x, y, 'tilesheet', frame);
         this.scene = scene;
+        this.x = x*32;
+        this.y = y*32;
         this.setOrigin(0);
         this.setScale(2);
         this.scene.add.existing(this);
@@ -19,8 +83,8 @@ class EnvironmentObject extends Phaser.GameObjects.Sprite {
 }
 
 class Wall extends EnvironmentObject {
-    constructor(scene, x, y, frame) {
-        super(scene, x, y, frame);
+    constructor(scene, x, y, cellType) {
+        super(scene, x, y, cellType);
         this.scene.physics.world.enable(this, Phaser.STATIC_BODY);
         this.body.setImmovable(true);
         this.body.syncBounds = true;
@@ -32,7 +96,8 @@ class Being extends Phaser.GameObjects.Sprite {
     constructor(scene, x, y, texture, frame) {
         super(scene, x, y, texture, frame);
         this.scene = scene;
-        this.setOrigin(0);
+        this.x = x*32;
+        this.y = y*32;
         this.setScale(2);
         this.scene.add.existing(this);
         this.scene.physics.world.enable(this);
@@ -56,18 +121,16 @@ class SceneMain extends Phaser.Scene {
         this.load.spritesheet('tilesheet', 'assets/character_and_tileset/Dungeon_Tileset.png', {frameWidth: 16, frameHeight: 16});
         this.load.spritesheet('hero-idle', 'assets/Character_animation/hero/idle.png', {frameWidth: 16, frameHeight: 24});
         this.load.spritesheet('hero-run', 'assets/Character_animation/hero/run.png', {frameWidth: 16, frameHeight: 24});
-        this.load.spritesheet('hero-run', 'assets/Character_animation/hero/attack.png', {frameWidth: 24, frameHeight: 24});
-        this.load.image('sidetorch1', 'assets/items_and_trap_animation/torch/side_torch_1.png');
-        this.load.image('sidetorch2', 'assets/items_and_trap_animation/torch/side_torch_2.png');
-        this.load.image('sidetorch3', 'assets/items_and_trap_animation/torch/side_torch_3.png');
-        this.load.image('sidetorch4', 'assets/items_and_trap_animation/torch/side_torch_4.png');
+        this.load.spritesheet('hero-attack', 'assets/Character_animation/hero/attack.png', {frameWidth: 24, frameHeight: 24});
     }
 
     create() {
+        var camera = this.cameras.main;
         up = this.input.keyboard.addKey('W');
         left = this.input.keyboard.addKey('A');
         down = this.input.keyboard.addKey('S');
         right = this.input.keyboard.addKey('D');
+        space = this.input.keyboard.addKey('space');
         this.anims.create({
             key: 'heroidleup',
             frames: this.anims.generateFrameNumbers('hero-idle', {start: 0, end: 3}),
@@ -148,34 +211,36 @@ class SceneMain extends Phaser.Scene {
             repeat: -1
         });
         this.add.tileSprite(16*32, 8*32, 32*32, 16*32, 'tilesheet', 78).setScale(2);
-        new EnvironmentObject(this, 15*32, 7*32, 11);
-        new EnvironmentObject(this, 15*32, 7*32, 64);
-        new EnvironmentObject(this, 16*32, 7*32, 12);
-        new EnvironmentObject(this, 17*32, 7*32, 14);
-        new EnvironmentObject(this, 15*32, 8*32, 21);
-        new EnvironmentObject(this, 15*32, 8*32, 91).play('sidetorch');
-        new EnvironmentObject(this, 16*32, 8*32, 22);
-        new EnvironmentObject(this, 17*32, 8*32, 24);
-        new EnvironmentObject(this, 15*32, 9*32, 31);
-        new EnvironmentObject(this, 16*32, 9*32, 32);
-        new EnvironmentObject(this, 17*32, 9*32, 34);
-        hero = new Hero(this, 16*32, 8*32, 'hero-idle', 8).play('heroidledown');
-        new Wall(this, 14*32, 6*32, 0);
-        new Wall(this, 15*32, 6*32, 1);
-        new Wall(this, 16*32, 6*32, 2);
-        new Wall(this, 17*32, 6*32, 3);
-        new Wall(this, 18*32, 6*32, 5);
-        new Wall(this, 18*32, 7*32, 15);
-        new Wall(this, 18*32, 8*32, 25);
-        new Wall(this, 18*32, 9*32, 35);
-        new Wall(this, 18*32, 10*32, 45);
-        new Wall(this, 17*32, 10*32, 44);
-        new Wall(this, 16*32, 10*32, 43);
-        new Wall(this, 15*32, 10*32, 42);
-        new Wall(this, 14*32, 10*32, 40);
-        new Wall(this, 14*32, 9*32, 30);
-        new Wall(this, 14*32, 8*32, 20);
-        new Wall(this, 14*32, 7*32, 10);
+        const mapString = `
+          7888889
+          4qwwwe6
+          4asssd6
+          4asssd6
+          4zxxxc6
+          1222223
+        `;
+        let mapRows = mapString.split("\n");
+        mapRows.shift();
+        mapRows.pop();
+        mapRows = mapRows.map(row => row.substring(10));
+        let mapCells = mapRows.map(row => row.split(""));
+        mapCells.forEach((row, rowNum) => {
+            row.forEach((cellType, columnNum) => {
+                if (cellType == "q" || cellType == "w" || cellType == "e" || cellType == "a" || cellType == "s" || cellType == "d" || cellType == "z" || cellType == "x" || cellType == "c") {
+                    new EnvironmentObject(this, columnNum+(12-mapCells[0].length)/2, rowNum+(6-mapRows.length)/2, cellType);
+                }
+            })
+        });
+        hero = new Hero(this, 6, 3, 'hero-idle', 8).play('heroidledown');
+        mapCells.forEach((row, rowNum) => {
+            row.forEach((cellType, columnNum) => {
+                if (cellType == "7" || cellType == "8" || cellType == "9" || cellType == "4" || cellType == "6" || cellType == "1" || cellType == "2" || cellType == "3") {
+                    new Wall(this, columnNum+(12-mapCells[0].length)/2, rowNum+(6-mapRows.length)/2, cellType);
+                }
+            })
+        });
+        camera.startFollow(hero, true, 0.1, 0.1);
+        camera.setDeadzone(64, 64);
     }
 
     update() {
@@ -184,6 +249,7 @@ class SceneMain extends Phaser.Scene {
             hero.body.setVelocityY(-64);
             if (!updown) {
                 hero.play('heroup');
+                heroDirection = "up";
                 updown = true;
             }
         }
@@ -197,6 +263,7 @@ class SceneMain extends Phaser.Scene {
             hero.body.setVelocityX(-64);
             if (!leftdown) {
                 hero.play('heroleft');
+                heroDirection = "left";
                 leftdown = true;
             }
         }
@@ -210,6 +277,7 @@ class SceneMain extends Phaser.Scene {
             hero.body.setVelocityY(64);
             if (!downdown) {
                 hero.play('herodown');
+                heroDirection = "down";
                 downdown = true;
             }
         }
@@ -223,6 +291,7 @@ class SceneMain extends Phaser.Scene {
             hero.body.setVelocityX(64);
             if (!rightdown) {
                 hero.play('heroright');
+                heroDirection = "right";
                 rightdown = true;
             }
         }
@@ -232,6 +301,75 @@ class SceneMain extends Phaser.Scene {
                 rightdown = false;
             }
         }
+        if (heroDirection == "up") {
+            if (space.isDown) {
+                if (!spacedown) {
+                    this.tweens.addCounter({
+                        duration: 500,
+                        onStart: () => {
+                            hero.play('heroattackup');
+                            spacedown = true;
+                        },
+                        onComplete: () => {
+                            hero.play('heroidleup');
+                            spacedown = false;
+                        }
+                    });
+                }
+            }
+        }
+        if (heroDirection == "left") {
+            if (space.isDown) {
+                if (!spacedown) {
+                    this.tweens.addCounter({
+                        duration: 500,
+                        onStart: () => {
+                            hero.play('heroattackleft');
+                            spacedown = true;
+                        },
+                        onComplete: () => {
+                            hero.play('heroidleleft');
+                            spacedown = false;
+                        }
+                    });
+                }
+            }
+        }
+        if (heroDirection == "down") {
+            if (space.isDown) {
+                if (!spacedown) {
+                    this.tweens.addCounter({
+                        duration: 500,
+                        onStart: () => {
+                            hero.play('heroattackdown');
+                            spacedown = true;
+                        },
+                        onComplete: () => {
+                            hero.play('heroidledown');
+                            spacedown = false;
+                        }
+                    });
+                }
+            }
+        }
+        if (heroDirection == "right") {
+            if (space.isDown) {
+                if (!spacedown) {
+                    this.tweens.addCounter({
+                        duration: 500,
+                        onStart: () => {
+                            hero.play('heroattackright');
+                            spacedown = true;
+                        },
+                        onComplete: () => {
+                            hero.play('heroidleright');
+                            spacedown = false;
+                        }
+                    });
+                }
+            }
+        }
+
     }
 
 }
