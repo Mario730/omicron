@@ -9,7 +9,7 @@ var downdown;
 var right;
 var rightdown;
 var space;
-var spacedown;
+var attack;
 
 class EnvironmentObject extends Phaser.GameObjects.Image {
     constructor(scene, x, y, cellType) {
@@ -248,71 +248,87 @@ class SceneMain extends Phaser.Scene {
         if (up.isDown) {
             hero.body.setVelocityY(-64);
             if (!updown) {
-                hero.play('heroup');
+                if (!attack) {
+                    hero.play('heroup');
+                }
                 heroDirection = "up";
                 updown = true;
             }
         }
         if (up.isUp) {
             if (updown) {
-                hero.play('heroidleup');
+                if (!attack) {
+                    hero.play('heroidleup');
+                }
                 updown = false;
             }
         }
         if (left.isDown) {
             hero.body.setVelocityX(-64);
             if (!leftdown) {
-                hero.play('heroleft');
+                if (!attack) {
+                    hero.play('heroleft');
+                }
                 heroDirection = "left";
                 leftdown = true;
             }
         }
         if (left.isUp) {
             if (leftdown) {
-                hero.play('heroidleleft');
+                if (!attack) {
+                    hero.play('heroidleleft');
+                }
                 leftdown = false;
             }
         }
         if (down.isDown) {
             hero.body.setVelocityY(64);
             if (!downdown) {
-                hero.play('herodown');
+                if (!attack) {
+                    hero.play('herodown');
+                }
                 heroDirection = "down";
                 downdown = true;
             }
         }
         if (down.isUp) {
             if (downdown) {
-                hero.play('heroidledown');
+                if (!attack) {
+                    hero.play('heroidledown');
+                }
                 downdown = false;
             }
         }
         if (right.isDown) {
             hero.body.setVelocityX(64);
             if (!rightdown) {
-                hero.play('heroright');
+                if (!attack) {
+                    hero.play('heroright');
+                }
                 heroDirection = "right";
                 rightdown = true;
             }
         }
         if (right.isUp) {
             if (rightdown) {
-                hero.play('heroidleright');
+                if (!attack) {
+                    hero.play('heroidleright');
+                }
                 rightdown = false;
             }
         }
         if (heroDirection == "up") {
             if (space.isDown) {
-                if (!spacedown) {
+                if (!attack) {
                     this.tweens.addCounter({
                         duration: 500,
                         onStart: () => {
                             hero.play('heroattackup');
-                            spacedown = true;
+                            attack = true;
                         },
                         onComplete: () => {
                             hero.play('heroidleup');
-                            spacedown = false;
+                            attack = false;
                         }
                     });
                 }
@@ -320,16 +336,16 @@ class SceneMain extends Phaser.Scene {
         }
         if (heroDirection == "left") {
             if (space.isDown) {
-                if (!spacedown) {
+                if (!attack) {
                     this.tweens.addCounter({
                         duration: 500,
                         onStart: () => {
                             hero.play('heroattackleft');
-                            spacedown = true;
+                            attack = true;
                         },
                         onComplete: () => {
                             hero.play('heroidleleft');
-                            spacedown = false;
+                            attack = false;
                         }
                     });
                 }
@@ -337,16 +353,16 @@ class SceneMain extends Phaser.Scene {
         }
         if (heroDirection == "down") {
             if (space.isDown) {
-                if (!spacedown) {
+                if (!attack) {
                     this.tweens.addCounter({
                         duration: 500,
                         onStart: () => {
                             hero.play('heroattackdown');
-                            spacedown = true;
+                            attack = true;
                         },
                         onComplete: () => {
                             hero.play('heroidledown');
-                            spacedown = false;
+                            attack = false;
                         }
                     });
                 }
@@ -354,16 +370,16 @@ class SceneMain extends Phaser.Scene {
         }
         if (heroDirection == "right") {
             if (space.isDown) {
-                if (!spacedown) {
+                if (!attack) {
                     this.tweens.addCounter({
                         duration: 500,
                         onStart: () => {
                             hero.play('heroattackright');
-                            spacedown = true;
+                            attack = true;
                         },
                         onComplete: () => {
                             hero.play('heroidleright');
-                            spacedown = false;
+                            attack = false;
                         }
                     });
                 }
