@@ -87,7 +87,7 @@ class Wall extends EnvironmentObject {
         super(scene, x, y, cellType);
         this.scene.physics.world.enable(this, Phaser.STATIC_BODY);
         this.body.setImmovable(true);
-        this.body.syncBounds = true;
+        this.body.setSize(16, 16);
         this.scene.physics.add.collider(this, hero);
     }
 }
@@ -101,7 +101,6 @@ class Being extends Phaser.GameObjects.Sprite {
         this.setScale(2);
         this.scene.add.existing(this);
         this.scene.physics.world.enable(this);
-        this.body.syncBounds = true;
     }
 }
 
@@ -109,6 +108,7 @@ class Hero extends Being {
     constructor(scene, x, y, texture, frame) {
         super(scene, x, y, texture, frame);
         this.setScale(1.5);
+        this.body.setSize(16, 24, false);
     }
 }
 
@@ -239,8 +239,8 @@ class SceneMain extends Phaser.Scene {
                 }
             })
         });
-        camera.startFollow(hero, true, 0.1, 0.1);
-        camera.setDeadzone(64, 64);
+        // camera.startFollow(hero, true, 0.1, 0.1);
+        // camera.setDeadzone(64, 64);
     }
 
     update() {
