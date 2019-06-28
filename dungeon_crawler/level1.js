@@ -10,8 +10,10 @@ var right;
 var rightdown;
 var space;
 var attack;
+var door;
+var e;
 
-class EnvironmentObject extends Phaser.GameObjects.Image {
+class EnvironmentObject extends Phaser.GameObjects.Sprite {
     constructor(scene, x, y, cellType) {
         let frame = 0;
         if (cellType == "7") {
@@ -72,6 +74,9 @@ class EnvironmentObject extends Phaser.GameObjects.Image {
         if (cellType == "c") {
             frame = 34;
         }
+        if (cellType == "doorleft") {
+            frame = 48;
+        }
         super(scene, x, y, 'tilesheet', frame);
         this.scene = scene;
         this.x = x*32;
@@ -87,8 +92,25 @@ class Wall extends EnvironmentObject {
         super(scene, x, y, cellType);
         this.scene.physics.world.enable(this, Phaser.STATIC_BODY);
         this.body.setImmovable(true);
+        this.setOrigin(0.5,0.5);
+        this.x = x*32+16;
+        this.y = y*32+16;
         this.body.setSize(16, 16);
         this.scene.physics.add.collider(this, hero);
+    }
+}
+
+class Door extends EnvironmentObject {
+    constructor(scene, x, y, cellType) {
+        super(scene, x, y, cellType);
+        this.scene.physics.world.enable(this, Phaser.STATIC_BODY);
+        this.body.setImmovable(true);
+        this.setOrigin(0.5,0.5);
+        this.x = x*32+16;
+        this.y = y*32+16;
+        this.body.setSize(16, 16);
+        this.scene.physics.add.collider(this, hero);
+        this.body.syncBounds = true;
     }
 }
 
@@ -107,8 +129,8 @@ class Being extends Phaser.GameObjects.Sprite {
 class Hero extends Being {
     constructor(scene, x, y, texture, frame) {
         super(scene, x, y, texture, frame);
-        this.setScale(1.5);
-        this.body.setSize(16, 24, false);
+        this.setScale(1.4);
+        this.body.syncBounds = true;
     }
 }
 
@@ -131,6 +153,12 @@ class SceneMain extends Phaser.Scene {
         down = this.input.keyboard.addKey('S');
         right = this.input.keyboard.addKey('D');
         space = this.input.keyboard.addKey('space');
+        e = this.input.keyboard.addKey('E');
+        this.anims.create({
+            key: 'open',
+            frames: this.anims.generateFrameNumbers('tilesheet', {start: 37, end: 37}),
+            frameRate: 8
+        });
         this.anims.create({
             key: 'heroidleup',
             frames: this.anims.generateFrameNumbers('hero-idle', {start: 0, end: 3}),
@@ -210,41 +238,113 @@ class SceneMain extends Phaser.Scene {
             frameRate: 8,
             repeat: -1
         });
-        this.add.tileSprite(16*32, 8*32, 32*32, 16*32, 'tilesheet', 78).setScale(2);
-        const mapString = `
-          7888889
-          4qwwwe6
-          4asssd6
-          4asssd6
-          4zxxxc6
-          1222223
-        `;
-        let mapRows = mapString.split("\n");
-        mapRows.shift();
-        mapRows.pop();
-        mapRows = mapRows.map(row => row.substring(10));
-        let mapCells = mapRows.map(row => row.split(""));
-        mapCells.forEach((row, rowNum) => {
-            row.forEach((cellType, columnNum) => {
-                if (cellType == "q" || cellType == "w" || cellType == "e" || cellType == "a" || cellType == "s" || cellType == "d" || cellType == "z" || cellType == "x" || cellType == "c") {
-                    new EnvironmentObject(this, columnNum+(12-mapCells[0].length)/2, rowNum+(6-mapRows.length)/2, cellType);
-                }
+        const worldGrid = [["tunnel","","","",""],["","","","",""],["5x5vampires","tunnel","5x5empty","",""],["","","","",""],["","","","",""]];
+        const rooms = {
+            "5x5empty": [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]],
+            "tunnel": [["","","","",""],["","","","",""],["","","","",""]],
+            "5x5vampires": [["","","","",""],["","x","","x",""],["","","","",""],["","x","","x",""],["","","","",""]],
+            "": []
+        }
+        worldGrid.forEach((roomRow, roomRowNum) => {
+            roomRow.forEach((roomName, roomColNum) => {
+                const mapCells = rooms[roomName];
+                mapCells.forEach((row, rowNum) => {
+                    row.forEach((cell, columnNum) => {
+                        if (rowNum == 0 && columnNum == 0) {
+                            new EnvironmentObject(this, columnNum+(12-mapCells.length)/2 + roomColNum*12, rowNum+(10-row.length)/2 + roomRowNum*10, "q");
+                        }
+                        if (rowNum == 0 && columnNum != 0 && columnNum != row.length-1) {
+                            new EnvironmentObject(this, columnNum+(12-mapCells.length)/2 + roomColNum*12, rowNum+(10-row.length)/2 + roomRowNum*10, "w");
+                        }
+                        if (rowNum == 0 && columnNum == row.length-1) {
+                            new EnvironmentObject(this, columnNum+(12-mapCells.length)/2 + roomColNum*12, rowNum+(10-row.length)/2 + roomRowNum*10, "e");
+                        }
+                        if (rowNum != 0 && rowNum != mapCells.length-1 && columnNum == 0) {
+                            new EnvironmentObject(this, columnNum+(12-mapCells.length)/2 + roomColNum*12, rowNum+(10-row.length)/2 + roomRowNum*10, "a");
+                        }
+                        if (rowNum != 0 && rowNum != mapCells.length-1 && columnNum != 0 && columnNum != row.length-1) {
+                            new EnvironmentObject(this, columnNum+(12-mapCells.length)/2 + roomColNum*12, rowNum+(10-row.length)/2 + roomRowNum*10, "s");
+                        }
+                        if (rowNum != 0 && rowNum != mapCells.length-1 && columnNum == row.length-1) {
+                            new EnvironmentObject(this, columnNum+(12-mapCells.length)/2 + roomColNum*12, rowNum+(10-row.length)/2 + roomRowNum*10, "d");
+                        }
+                        if (rowNum == mapCells.length-1 && columnNum == 0) {
+                            new EnvironmentObject(this, columnNum+(12-mapCells.length)/2 + roomColNum*12, rowNum+(10-row.length)/2 + roomRowNum*10, "z");
+                        }
+                        if (rowNum == mapCells.length-1 && columnNum != 0 && columnNum != row.length-1) {
+                            new EnvironmentObject(this, columnNum+(12-mapCells.length)/2 + roomColNum*12, rowNum+(10-row.length)/2 + roomRowNum*10, "x");
+                        }
+                        if (rowNum == mapCells.length-1 && columnNum == row.length-1) {
+                            new EnvironmentObject(this, columnNum+(12-mapCells.length)/2 + roomColNum*12, rowNum+(10-row.length)/2 + roomRowNum*10, "c");
+                        }
+                    })
+                });
             })
-        });
-        hero = new Hero(this, 6, 3, 'hero-idle', 8).play('heroidledown');
-        mapCells.forEach((row, rowNum) => {
-            row.forEach((cellType, columnNum) => {
-                if (cellType == "7" || cellType == "8" || cellType == "9" || cellType == "4" || cellType == "6" || cellType == "1" || cellType == "2" || cellType == "3") {
-                    new Wall(this, columnNum+(12-mapCells[0].length)/2, rowNum+(6-mapRows.length)/2, cellType);
-                }
+        })
+        hero = new Hero(this, 6+24, 5+20, 'hero-idle', 8).play('heroidledown');
+        worldGrid.forEach((roomRow, roomRowNum) => {
+            roomRow.forEach((roomName, roomColNum) => {
+                const baseX = roomColNum*8;
+                const baseY = roomRowNum*6;
+                const mapCells = rooms[roomName];
+                mapCells.forEach((row, rowNum) => {
+                    row.forEach((cell, columnNum) => {
+                        if (rowNum == 0 && columnNum == 0) {
+                            new Wall(this, columnNum+(12-mapCells.length)/2 + roomColNum*12 - 1, rowNum+(10-row.length)/2 + roomRowNum*10 - 1, "7");
+                            new Wall(this, columnNum+(12-mapCells.length)/2 + roomColNum*12, rowNum+(10-row.length)/2 + roomRowNum*10 - 1, "8");
+                            new Wall(this, columnNum+(12-mapCells.length)/2 + roomColNum*12 - 1, rowNum+(10-row.length)/2 + roomRowNum*10, "4");
+                        }
+                        if (rowNum == 0 && columnNum != 0 && columnNum != row.length-1) {
+                            new Wall(this, columnNum+(12-mapCells.length)/2 + roomColNum*12, rowNum+(10-row.length)/2 + roomRowNum*10 - 1, "8");
+                        }
+                        if (rowNum == 0 && columnNum == row.length-1) {
+                            new Wall(this, columnNum+(12-mapCells.length)/2 + roomColNum*12, rowNum+(10-row.length)/2 + roomRowNum*10 - 1, "8");
+                            new Wall(this, columnNum+(12-mapCells.length)/2 + roomColNum*12 + 1, rowNum+(10-row.length)/2 + roomRowNum*10 - 1, "9");
+                            new Wall(this, columnNum+(12-mapCells.length)/2 + roomColNum*12 + 1, rowNum+(10-row.length)/2 + roomRowNum*10, "6");
+                        }
+                        if (rowNum != 0 && rowNum != mapCells.length-1 && rowNum != (mapCells.length-1)/2 && columnNum == 0) {
+                            new Wall(this, columnNum+(12-mapCells.length)/2 + roomColNum*12 - 1, rowNum+(10-row.length)/2 + roomRowNum*10, "4");
+                        }
+                        if (rowNum == (mapCells.length-1)/2 && columnNum == 0) {
+                            new Door(this, columnNum+(12-mapCells.length)/2 + roomColNum*12 - 1, rowNum+(10-row.length)/2 + roomRowNum*10, "doorleft");
+                        }
+                        if (rowNum != 0 && rowNum != mapCells.length-1 && columnNum == row.length-1) {
+                            new Wall(this, columnNum+(12-mapCells.length)/2 + roomColNum*12 + 1, rowNum+(10-row.length)/2 + roomRowNum*10, "6");
+                        }
+                        if (rowNum == mapCells.length-1 && columnNum == 0) {
+                            new Wall(this, columnNum+(12-mapCells.length)/2 + roomColNum*12 - 1, rowNum+(10-row.length)/2 + roomRowNum*10, "4");
+                            new Wall(this, columnNum+(12-mapCells.length)/2 + roomColNum*12 - 1, rowNum+(10-row.length)/2 + roomRowNum*10 + 1, "1");
+                            new Wall(this, columnNum+(12-mapCells.length)/2 + roomColNum*12, rowNum+(10-row.length)/2 + roomRowNum*10 + 1, "2");
+                        }
+                        if (rowNum == mapCells.length-1 && columnNum != 0 && columnNum != row.length-1) {
+                            new Wall(this, columnNum+(12-mapCells.length)/2 + roomColNum*12, rowNum+(10-row.length)/2 + roomRowNum*10 + 1, "2");
+                        }
+                        if (rowNum == mapCells.length-1 && columnNum == row.length-1) {
+                            new Wall(this, columnNum+(12-mapCells.length)/2 + roomColNum*12 + 1, rowNum+(10-row.length)/2 + roomRowNum*10, "6");
+                            new Wall(this, columnNum+(12-mapCells.length)/2 + roomColNum*12 + 1, rowNum+(10-row.length)/2 + roomRowNum*10 + 1, "3");
+                            new Wall(this, columnNum+(12-mapCells.length)/2 + roomColNum*12, rowNum+(10-row.length)/2 + roomRowNum*10 + 1, "2");
+                        }
+                    })
+                });
             })
-        });
-        // camera.startFollow(hero, true, 0.1, 0.1);
-        // camera.setDeadzone(64, 64);
+        })
+        var camera = this.cameras.main;
+        camera.setViewport(0, 4*32, 12*32, 10*32);
+        camera.setBackgroundColor(0x25131A);
+        camera.startFollow(hero);
+        var minimap = this.cameras.add(4.5*32, 0.5*32, 3*32, 3*32);
+        minimap.setBackgroundColor(0xFF0000);
     }
 
     update() {
         hero.body.setVelocity(0, 0);
+        // if (e.isDown) {
+        //     if ((hero.x - door.x) * (hero.x - door.x) + (hero.y - door.y) * (hero.y - door.y) <= 64*64) {
+        //         door.play('open');
+        //         if (heroDirection == "left") {
+        //         }
+        //     }
+        // }
         if (up.isDown) {
             hero.body.setVelocityY(-64);
             if (!updown) {
@@ -385,7 +485,6 @@ class SceneMain extends Phaser.Scene {
                 }
             }
         }
-
     }
 
 }
