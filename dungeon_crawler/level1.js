@@ -10,7 +10,6 @@ var right;
 var rightdown;
 var space;
 var attack;
-var door;
 var e;
 
 class EnvironmentObject extends Phaser.GameObjects.Sprite {
@@ -76,6 +75,15 @@ class EnvironmentObject extends Phaser.GameObjects.Sprite {
         }
         if (cellType == "doorleft") {
             frame = 48;
+        }
+        if (cellType == "doorright") {
+            frame = 47;
+        }
+        if (cellType == "doortop") {
+            frame = 37;
+        }
+        if (cellType == "doorbottom") {
+            frame = 36;
         }
         super(scene, x, y, 'tilesheet', frame);
         this.scene = scene;
@@ -155,7 +163,7 @@ class SceneMain extends Phaser.Scene {
         space = this.input.keyboard.addKey('space');
         e = this.input.keyboard.addKey('E');
         this.anims.create({
-            key: 'open',
+            key: 'doorleftopen',
             frames: this.anims.generateFrameNumbers('tilesheet', {start: 37, end: 37}),
             frameRate: 8
         });
@@ -238,7 +246,7 @@ class SceneMain extends Phaser.Scene {
             frameRate: 8,
             repeat: -1
         });
-        const worldGrid = [["tunnel","","","",""],["","","","",""],["5x5vampires","tunnel","9x7empty","",""],["","","","",""],["","","","",""]];
+        const worldGrid = [["tunnel","","","",""],["","","5x5empty","",""],["5x5vampires","tunnel","9x7empty","tunnel","tunnel"],["","","","",""],["","","","",""]];
         const rooms = {
             "5x5empty": [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]],
             "tunnel": [["","","","",""],["","","","",""],["","","","",""]],
@@ -286,8 +294,6 @@ class SceneMain extends Phaser.Scene {
         hero = new Hero(this, 5.5+22, 4.5+18, 'hero-idle', 8).play('heroidledown');
         worldGrid.forEach((roomRow, roomRowNum) => {
             roomRow.forEach((roomName, roomColNum) => {
-                const baseX = roomColNum*8;
-                const baseY = roomRowNum*6;
                 const mapCells = rooms[roomName];
                 mapCells.forEach((row, rowNum) => {
                     row.forEach((cell, columnNum) => {
@@ -296,7 +302,7 @@ class SceneMain extends Phaser.Scene {
                             new Wall(this, columnNum+(11-row.length)/2 + roomColNum*11, rowNum+(9-mapCells.length)/2 + roomRowNum*9 - 1, "8");
                             new Wall(this, columnNum+(11-row.length)/2 + roomColNum*11 - 1, rowNum+(9-mapCells.length)/2 + roomRowNum*9, "4");
                         }
-                        if (rowNum == 0 && columnNum != 0 && columnNum != row.length-1) {
+                        if (rowNum == 0 && columnNum != 0 && columnNum != row.length-1 && columnNum != (row.length-1)/2) {
                             new Wall(this, columnNum+(11-row.length)/2 + roomColNum*11, rowNum+(9-mapCells.length)/2 + roomRowNum*9 - 1, "8");
                         }
                         if (rowNum == 0 && columnNum == row.length-1) {
@@ -307,10 +313,7 @@ class SceneMain extends Phaser.Scene {
                         if (rowNum != 0 && rowNum != mapCells.length-1 && rowNum != (mapCells.length-1)/2 && columnNum == 0) {
                             new Wall(this, columnNum+(11-row.length)/2 + roomColNum*11 - 1, rowNum+(9-mapCells.length)/2 + roomRowNum*9, "4");
                         }
-                        if (rowNum == (mapCells.length-1)/2 && columnNum == 0) {
-                            new Door(this, columnNum+(11-row.length)/2 + roomColNum*11 - 1, rowNum+(9-mapCells.length)/2 + roomRowNum*9, "doorleft");
-                        }
-                        if (rowNum != 0 && rowNum != mapCells.length-1 && columnNum == row.length-1) {
+                        if (rowNum != 0 && rowNum != mapCells.length-1 && rowNum != (mapCells.length-1)/2 && columnNum == row.length-1) {
                             new Wall(this, columnNum+(11-row.length)/2 + roomColNum*11 + 1, rowNum+(9-mapCells.length)/2 + roomRowNum*9, "6");
                         }
                         if (rowNum == mapCells.length-1 && columnNum == 0) {
@@ -318,13 +321,49 @@ class SceneMain extends Phaser.Scene {
                             new Wall(this, columnNum+(11-row.length)/2 + roomColNum*11 - 1, rowNum+(9-mapCells.length)/2 + roomRowNum*9 + 1, "1");
                             new Wall(this, columnNum+(11-row.length)/2 + roomColNum*11, rowNum+(9-mapCells.length)/2 + roomRowNum*9 + 1, "2");
                         }
-                        if (rowNum == mapCells.length-1 && columnNum != 0 && columnNum != row.length-1) {
+                        if (rowNum == mapCells.length-1 && columnNum != 0 && columnNum != row.length-1 && columnNum != (row.length-1)/2) {
                             new Wall(this, columnNum+(11-row.length)/2 + roomColNum*11, rowNum+(9-mapCells.length)/2 + roomRowNum*9 + 1, "2");
                         }
                         if (rowNum == mapCells.length-1 && columnNum == row.length-1) {
                             new Wall(this, columnNum+(11-row.length)/2 + roomColNum*11 + 1, rowNum+(9-mapCells.length)/2 + roomRowNum*9, "6");
                             new Wall(this, columnNum+(11-row.length)/2 + roomColNum*11 + 1, rowNum+(9-mapCells.length)/2 + roomRowNum*9 + 1, "3");
                             new Wall(this, columnNum+(11-row.length)/2 + roomColNum*11, rowNum+(9-mapCells.length)/2 + roomRowNum*9 + 1, "2");
+                        }
+                        if (roomColNum > 0) {
+                            if (worldGrid[roomRowNum][roomColNum-1] != "") {
+                                new Door(this, (11-row.length)/2 + roomColNum*11 - 1, 4 + roomRowNum*9, "doorleft");
+                            } else {
+                                new Wall(this, (11-row.length)/2 + roomColNum*11 - 1, 4 + roomRowNum*9, "4");
+                            }
+                        } else {
+                            new Wall(this, (11-row.length)/2 - 1, 4 + roomRowNum*9, "4");
+                        }
+                        if (roomColNum < 4) {
+                            if (worldGrid[roomRowNum][roomColNum+1] != "") {
+                                new Door(this, (11+row.length)/2 + roomColNum*11, 4 + roomRowNum*9, "doorright");
+                            } else {
+                                new Wall(this, (11+row.length)/2 + roomColNum*11, 4 + roomRowNum*9, "6");
+                            }
+                        } else {
+                            new Wall(this, (11+row.length)/2 + 4*11, 4 + roomRowNum*9, "6");
+                        }
+                        if (roomRowNum > 0) {
+                            if (worldGrid[roomRowNum-1][roomColNum] != "") {
+                                new Door(this, 5 + roomColNum*11, (9-mapCells.length)/2 + roomRowNum*9 - 1, "doortop");
+                            } else {
+                                new Wall(this, 5 + roomColNum*11, (9-mapCells.length)/2 + roomRowNum*9 - 1, "8");
+                            }
+                        } else {
+                            new Wall(this, 5 + roomColNum*11, (9-mapCells.length)/2 - 1, "8");
+                        }
+                        if (roomRowNum < 4) {
+                            if (worldGrid[roomRowNum+1][roomColNum] != "") {
+                                new Door(this, 5 + roomColNum*11, (9+mapCells.length)/2 + roomRowNum*9, "doorbottom");
+                            } else {
+                                new Wall(this, 5 + roomColNum*11, (9+mapCells.length)/2 + roomRowNum*9, "2");
+                            }
+                        } else {
+                            new Wall(this, 5 + roomColNum*11, (9+mapCells.length)/2 + 4*9, "2");
                         }
                     })
                 });
@@ -336,7 +375,7 @@ class SceneMain extends Phaser.Scene {
         camera.setScroll(22*32, 18*32);
         // camera.startFollow(hero);
         var minimap = this.cameras.add(4*32, 0.5*32, 3*32, 3*32);
-        minimap.setBackgroundColor(0x25131A);
+        minimap.setBackgroundColor(0x000000);
         minimap.setScroll(30*32, 25*32);
         minimap.setZoom(0.05);
     }
@@ -345,7 +384,7 @@ class SceneMain extends Phaser.Scene {
         hero.body.setVelocity(0, 0);
         // if (e.isDown) {
         //     if ((hero.x - door.x) * (hero.x - door.x) + (hero.y - door.y) * (hero.y - door.y) <= 64*64) {
-        //         door.play('open');
+        //         door.play('doorleftopen');
         //         if (heroDirection == "left") {
         //         }
         //     }
