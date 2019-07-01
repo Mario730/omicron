@@ -255,37 +255,45 @@ class SceneMain extends Phaser.Scene {
             "": []
             //9x7 IS THE BIGGEST A ROOM CAN BE
         }
+        const maxRoomWidth = 11;
+        const maxRoomHeight = 9;
         worldGrid.forEach((roomRow, roomRowNum) => {
             roomRow.forEach((roomName, roomColNum) => {
+                const xRoomOffset = roomColNum*maxRoomWidth;
+                const yRoomOffset = roomRowNum*maxRoomHeight;
                 const mapCells = rooms[roomName];
                 mapCells.forEach((row, rowNum) => {
                     row.forEach((cell, columnNum) => {
+                        const xCenterOffset = (maxRoomWidth-row.length)/2;
+                        const xOffset = xRoomOffset+xCenterOffset;
+                        const yCenterOffset = (maxRoomHeight-mapCells.length)/2;
+                        const yOffset = yRoomOffset+yCenterOffset;
                         if (rowNum == 0 && columnNum == 0) {
-                            new EnvironmentObject(this, columnNum+(11-row.length)/2 + roomColNum*11, rowNum+(9-mapCells.length)/2 + roomRowNum*9, "q");
+                            new EnvironmentObject(this, columnNum+xOffset, rowNum+yOffset, "q");
                         }
                         if (rowNum == 0 && columnNum != 0 && columnNum != row.length-1) {
-                            new EnvironmentObject(this, columnNum+(11-row.length)/2 + roomColNum*11, rowNum+(9-mapCells.length)/2 + roomRowNum*9, "w");
+                            new EnvironmentObject(this, columnNum+xOffset, rowNum+yOffset, "w");
                         }
                         if (rowNum == 0 && columnNum == row.length-1) {
-                            new EnvironmentObject(this, columnNum+(11-row.length)/2 + roomColNum*11, rowNum+(9-mapCells.length)/2 + roomRowNum*9, "e");
+                            new EnvironmentObject(this, columnNum+xOffset, rowNum+yOffset, "e");
                         }
                         if (rowNum != 0 && rowNum != mapCells.length-1 && columnNum == 0) {
-                            new EnvironmentObject(this, columnNum+(11-row.length)/2 + roomColNum*11, rowNum+(9-mapCells.length)/2 + roomRowNum*9, "a");
+                            new EnvironmentObject(this, columnNum+xOffset, rowNum+yOffset, "a");
                         }
                         if (rowNum != 0 && rowNum != mapCells.length-1 && columnNum != 0 && columnNum != row.length-1) {
-                            new EnvironmentObject(this, columnNum+(11-row.length)/2 + roomColNum*11, rowNum+(9-mapCells.length)/2 + roomRowNum*9, "s");
+                            new EnvironmentObject(this, columnNum+xOffset, rowNum+yOffset, "s");
                         }
                         if (rowNum != 0 && rowNum != mapCells.length-1 && columnNum == row.length-1) {
-                            new EnvironmentObject(this, columnNum+(11-row.length)/2 + roomColNum*11, rowNum+(9-mapCells.length)/2 + roomRowNum*9, "d");
+                            new EnvironmentObject(this, columnNum+xOffset, rowNum+yOffset, "d");
                         }
                         if (rowNum == mapCells.length-1 && columnNum == 0) {
-                            new EnvironmentObject(this, columnNum+(11-row.length)/2 + roomColNum*11, rowNum+(9-mapCells.length)/2 + roomRowNum*9, "z");
+                            new EnvironmentObject(this, columnNum+xOffset, rowNum+yOffset, "z");
                         }
                         if (rowNum == mapCells.length-1 && columnNum != 0 && columnNum != row.length-1) {
-                            new EnvironmentObject(this, columnNum+(11-row.length)/2 + roomColNum*11, rowNum+(9-mapCells.length)/2 + roomRowNum*9, "x");
+                            new EnvironmentObject(this, columnNum+xOffset, rowNum+yOffset, "x");
                         }
                         if (rowNum == mapCells.length-1 && columnNum == row.length-1) {
-                            new EnvironmentObject(this, columnNum+(11-row.length)/2 + roomColNum*11, rowNum+(9-mapCells.length)/2 + roomRowNum*9, "c");
+                            new EnvironmentObject(this, columnNum+xOffset, rowNum+yOffset, "c");
                         }
                     })
                 });
@@ -294,83 +302,89 @@ class SceneMain extends Phaser.Scene {
         hero = new Hero(this, 5.5+22, 4.5+18, 'hero-idle', 8).play('heroidledown');
         worldGrid.forEach((roomRow, roomRowNum) => {
             roomRow.forEach((roomName, roomColNum) => {
+                const xRoomOffset = roomColNum*maxRoomWidth;
+                const yRoomOffset = roomRowNum*maxRoomHeight;
                 const mapCells = rooms[roomName];
                 mapCells.forEach((row, rowNum) => {
                     row.forEach((cell, columnNum) => {
+                        const xCenterOffset = (maxRoomWidth-row.length)/2;
+                        const xOffset = xRoomOffset+xCenterOffset;
+                        const yCenterOffset = (maxRoomHeight-mapCells.length)/2;
+                        const yOffset = yRoomOffset+yCenterOffset;
                         if (rowNum == 0 && columnNum == 0) {
-                            new Wall(this, columnNum+(11-row.length)/2 + roomColNum*11 - 1, rowNum+(9-mapCells.length)/2 + roomRowNum*9 - 1, "7");
-                            new Wall(this, columnNum+(11-row.length)/2 + roomColNum*11, rowNum+(9-mapCells.length)/2 + roomRowNum*9 - 1, "8");
-                            new Wall(this, columnNum+(11-row.length)/2 + roomColNum*11 - 1, rowNum+(9-mapCells.length)/2 + roomRowNum*9, "4");
+                            new Wall(this, columnNum+xOffset - 1, rowNum+yOffset - 1, "7");
+                            new Wall(this, columnNum+xOffset, rowNum+yOffset - 1, "8");
+                            new Wall(this, columnNum+xOffset - 1, rowNum+yOffset, "4");
                         }
                         if (rowNum == 0 && columnNum != 0 && columnNum != row.length-1 && columnNum != (row.length-1)/2) {
-                            new Wall(this, columnNum+(11-row.length)/2 + roomColNum*11, rowNum+(9-mapCells.length)/2 + roomRowNum*9 - 1, "8");
+                            new Wall(this, columnNum+xOffset, rowNum+yOffset - 1, "8");
                         }
                         if (rowNum == 0 && columnNum == row.length-1) {
-                            new Wall(this, columnNum+(11-row.length)/2 + roomColNum*11, rowNum+(9-mapCells.length)/2 + roomRowNum*9 - 1, "8");
-                            new Wall(this, columnNum+(11-row.length)/2 + roomColNum*11 + 1, rowNum+(9-mapCells.length)/2 + roomRowNum*9 - 1, "9");
-                            new Wall(this, columnNum+(11-row.length)/2 + roomColNum*11 + 1, rowNum+(9-mapCells.length)/2 + roomRowNum*9, "6");
+                            new Wall(this, columnNum+xOffset, rowNum+yOffset - 1, "8");
+                            new Wall(this, columnNum+xOffset + 1, rowNum+yOffset - 1, "9");
+                            new Wall(this, columnNum+xOffset + 1, rowNum+yOffset, "6");
                         }
                         if (rowNum != 0 && rowNum != mapCells.length-1 && rowNum != (mapCells.length-1)/2 && columnNum == 0) {
-                            new Wall(this, columnNum+(11-row.length)/2 + roomColNum*11 - 1, rowNum+(9-mapCells.length)/2 + roomRowNum*9, "4");
+                            new Wall(this, columnNum+xOffset - 1, rowNum+yOffset, "4");
                         }
                         if (rowNum != 0 && rowNum != mapCells.length-1 && rowNum != (mapCells.length-1)/2 && columnNum == row.length-1) {
-                            new Wall(this, columnNum+(11-row.length)/2 + roomColNum*11 + 1, rowNum+(9-mapCells.length)/2 + roomRowNum*9, "6");
+                            new Wall(this, columnNum+xOffset + 1, rowNum+yOffset, "6");
                         }
                         if (rowNum == mapCells.length-1 && columnNum == 0) {
-                            new Wall(this, columnNum+(11-row.length)/2 + roomColNum*11 - 1, rowNum+(9-mapCells.length)/2 + roomRowNum*9, "4");
-                            new Wall(this, columnNum+(11-row.length)/2 + roomColNum*11 - 1, rowNum+(9-mapCells.length)/2 + roomRowNum*9 + 1, "1");
-                            new Wall(this, columnNum+(11-row.length)/2 + roomColNum*11, rowNum+(9-mapCells.length)/2 + roomRowNum*9 + 1, "2");
+                            new Wall(this, columnNum+xOffset - 1, rowNum+yOffset, "4");
+                            new Wall(this, columnNum+xOffset - 1, rowNum+yOffset + 1, "1");
+                            new Wall(this, columnNum+xOffset, rowNum+yOffset + 1, "2");
                         }
                         if (rowNum == mapCells.length-1 && columnNum != 0 && columnNum != row.length-1 && columnNum != (row.length-1)/2) {
-                            new Wall(this, columnNum+(11-row.length)/2 + roomColNum*11, rowNum+(9-mapCells.length)/2 + roomRowNum*9 + 1, "2");
+                            new Wall(this, columnNum+xOffset, rowNum+yOffset + 1, "2");
                         }
                         if (rowNum == mapCells.length-1 && columnNum == row.length-1) {
-                            new Wall(this, columnNum+(11-row.length)/2 + roomColNum*11 + 1, rowNum+(9-mapCells.length)/2 + roomRowNum*9, "6");
-                            new Wall(this, columnNum+(11-row.length)/2 + roomColNum*11 + 1, rowNum+(9-mapCells.length)/2 + roomRowNum*9 + 1, "3");
-                            new Wall(this, columnNum+(11-row.length)/2 + roomColNum*11, rowNum+(9-mapCells.length)/2 + roomRowNum*9 + 1, "2");
+                            new Wall(this, columnNum+xOffset + 1, rowNum+yOffset, "6");
+                            new Wall(this, columnNum+xOffset + 1, rowNum+yOffset + 1, "3");
+                            new Wall(this, columnNum+xOffset, rowNum+yOffset + 1, "2");
                         }
                         if (roomColNum > 0) {
                             if (worldGrid[roomRowNum][roomColNum-1] != "") {
-                                new Door(this, (11-row.length)/2 + roomColNum*11 - 1, 4 + roomRowNum*9, "doorleft");
+                                new Door(this, xOffset - 1, 4 + roomRowNum*maxRoomHeight, "doorleft");
                             } else {
-                                new Wall(this, (11-row.length)/2 + roomColNum*11 - 1, 4 + roomRowNum*9, "4");
+                                new Wall(this, xOffset - 1, 4 + roomRowNum*maxRoomHeight, "4");
                             }
                         } else {
-                            new Wall(this, (11-row.length)/2 - 1, 4 + roomRowNum*9, "4");
+                            new Wall(this, (maxRoomWidth-row.length)/2 - 1, 4 + roomRowNum*maxRoomHeight, "4");
                         }
                         if (roomColNum < 4) {
                             if (worldGrid[roomRowNum][roomColNum+1] != "") {
-                                new Door(this, (11+row.length)/2 + roomColNum*11, 4 + roomRowNum*9, "doorright");
+                                new Door(this, (maxRoomWidth+row.length)/2 + roomColNum*maxRoomWidth, 4 + roomRowNum*maxRoomHeight, "doorright");
                             } else {
-                                new Wall(this, (11+row.length)/2 + roomColNum*11, 4 + roomRowNum*9, "6");
+                                new Wall(this, (maxRoomWidth+row.length)/2 + roomColNum*maxRoomWidth, 4 + roomRowNum*maxRoomHeight, "6");
                             }
                         } else {
-                            new Wall(this, (11+row.length)/2 + 4*11, 4 + roomRowNum*9, "6");
+                            new Wall(this, (maxRoomWidth+row.length)/2 + 4*maxRoomWidth, 4 + roomRowNum*maxRoomHeight, "6");
                         }
                         if (roomRowNum > 0) {
                             if (worldGrid[roomRowNum-1][roomColNum] != "") {
-                                new Door(this, 5 + roomColNum*11, (9-mapCells.length)/2 + roomRowNum*9 - 1, "doortop");
+                                new Door(this, 5 + roomColNum*maxRoomWidth, (maxRoomHeight-mapCells.length)/2 + roomRowNum*maxRoomHeight - 1, "doortop");
                             } else {
-                                new Wall(this, 5 + roomColNum*11, (9-mapCells.length)/2 + roomRowNum*9 - 1, "8");
+                                new Wall(this, 5 + roomColNum*maxRoomWidth, (maxRoomHeight-mapCells.length)/2 + roomRowNum*maxRoomHeight - 1, "8");
                             }
                         } else {
-                            new Wall(this, 5 + roomColNum*11, (9-mapCells.length)/2 - 1, "8");
+                            new Wall(this, 5 + roomColNum*maxRoomWidth, (maxRoomHeight-mapCells.length)/2 - 1, "8");
                         }
                         if (roomRowNum < 4) {
                             if (worldGrid[roomRowNum+1][roomColNum] != "") {
-                                new Door(this, 5 + roomColNum*11, (9+mapCells.length)/2 + roomRowNum*9, "doorbottom");
+                                new Door(this, 5 + roomColNum*maxRoomWidth, (maxRoomHeight+mapCells.length)/2 + roomRowNum*maxRoomHeight, "doorbottom");
                             } else {
-                                new Wall(this, 5 + roomColNum*11, (9+mapCells.length)/2 + roomRowNum*9, "2");
+                                new Wall(this, 5 + roomColNum*maxRoomWidth, (maxRoomHeight+mapCells.length)/2 + roomRowNum*maxRoomHeight, "2");
                             }
                         } else {
-                            new Wall(this, 5 + roomColNum*11, (9+mapCells.length)/2 + 4*9, "2");
+                            new Wall(this, 5 + roomColNum*maxRoomWidth, (maxRoomHeight+mapCells.length)/2 + 4*maxRoomHeight, "2");
                         }
                     })
                 });
             })
         })
         var camera = this.cameras.main;
-        camera.setViewport(0, 4*32, 11*32, 9*32);
+        camera.setViewport(0, 4*32, maxRoomWidth*32, maxRoomHeight*32);
         camera.setBackgroundColor(0x25131A);
         camera.setScroll(22*32, 18*32);
         // camera.startFollow(hero);
