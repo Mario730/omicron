@@ -11,6 +11,11 @@ var rightdown;
 var space;
 var attack;
 var e;
+var edown;
+let skelright = true;
+const skeletonSpeed = 10;
+const maxRoomWidth = 11;
+const maxRoomHeight = 9;
 
 class EnvironmentObject extends Phaser.GameObjects.Sprite {
     constructor(scene, x, y, cellType) {
@@ -105,6 +110,9 @@ class Wall extends EnvironmentObject {
         this.y = y*32+16;
         this.body.setSize(16, 16);
         this.scene.physics.add.collider(this, hero);
+        // this.scene.skeletons.getChildren().forEach((skel) => {
+        //     this.scene.physics.add.collider(this, skel);
+        // });
     }
 }
 
@@ -119,6 +127,89 @@ class Door extends EnvironmentObject {
         this.body.setSize(16, 16);
         this.scene.physics.add.collider(this, hero);
         this.body.syncBounds = true;
+        this.doorType = cellType;
+        
+    }
+
+    update() {
+        if ((hero.x - this.x) * (hero.x - this.x) + (hero.y - this.y) * (hero.y - this.y) <= 64*64) {
+            if (heroDirection == "left") {
+                if (this.doorType == "doorleft") {
+                    this.scene.tweens.addCounter({
+                        from: 0,
+                        to: 700,
+                        duration: 700,
+                        onStart: () => {
+                            this.setFrame(37);
+                            this.scene.camera.fade(1000, 0x000000);
+                        },
+                        onComplete: () => {
+                            this.scene.camera.scrollX -= 11*32;
+                            this.setFrame(48);
+                            hero.warpToRoom();
+                            this.scene.camera.fadeIn(1000, 0x000000);
+                        }
+                    });
+                }
+            }
+            if (heroDirection == "up") {
+                if (this.doorType == "doortop") {
+                    this.scene.tweens.addCounter({
+                        from: 0,
+                        to: 700,
+                        duration: 700,
+                        onStart: () => {
+                            this.setFrame(58);
+                            this.scene.camera.fade(1000, 0x000000);
+                        },
+                        onComplete: () => {
+                            this.scene.camera.scrollY -= 9*32;
+                            this.setFrame(37);
+                            hero.warpToRoom();
+                            this.scene.camera.fadeIn(1000, 0x000000);
+                        }
+                    });
+                }
+            }
+            if (heroDirection == "right") {
+                if (this.doorType == "doorright") {
+                    this.scene.tweens.addCounter({
+                        from: 0,
+                        to: 700,
+                        duration: 700,
+                        onStart: () => {
+                            this.setFrame(36);
+                            this.scene.camera.fade(1000, 0x000000);
+                        },
+                        onComplete: () => {
+                            this.scene.camera.scrollX += 11*32;
+                            this.setFrame(47);
+                            hero.warpToRoom();
+                            this.scene.camera.fadeIn(1000, 0x000000);
+                        }
+                    });
+                }
+            }
+            if (heroDirection == "down") {
+                if (this.doorType == "doorbottom") {
+                    this.scene.tweens.addCounter({
+                        from: 0,
+                        to: 700,
+                        duration: 700,
+                        onStart: () => {
+                            this.setFrame(47);
+                            this.scene.camera.fade(1000, 0x000000);
+                        },
+                        onComplete: () => {
+                            this.scene.camera.scrollY += 9*32;
+                            this.setFrame(36);
+                            hero.warpToRoom();
+                            this.scene.camera.fadeIn(1000, 0x000000);
+                        }
+                    });
+                }
+            }
+        }
     }
 }
 
@@ -131,6 +222,7 @@ class Being extends Phaser.GameObjects.Sprite {
         this.setScale(2);
         this.scene.add.existing(this);
         this.scene.physics.world.enable(this);
+        this.body.syncBounds = true;
     }
 }
 
@@ -138,7 +230,74 @@ class Hero extends Being {
     constructor(scene, x, y, texture, frame) {
         super(scene, x, y, texture, frame);
         this.setScale(1.4);
-        this.body.syncBounds = true;
+    }
+
+    warpToRoom() {
+        let [heroRoomX, heroRoomY] = this.scene.heroRoom;
+        if (heroDirection == "left") {
+            heroRoomX -= 1;
+            let roomType = this.scene.rooms[this.scene.worldGrid[heroRoomY][heroRoomX]];
+            hero.x = ((maxRoomWidth+roomType[0].length)/2 + heroRoomX*maxRoomWidth - 0.5)*32;
+        }
+        if (heroDirection == "right") {
+            heroRoomX += 1;
+            let roomType = this.scene.rooms[this.scene.worldGrid[heroRoomY][heroRoomX]];
+            hero.x = ((maxRoomWidth-roomType[0].length)/2 + heroRoomX*maxRoomWidth + 0.5)*32;
+        }
+        if (heroDirection == "up") {
+            heroRoomY -= 1;
+            let roomType = this.scene.rooms[this.scene.worldGrid[heroRoomY][heroRoomX]];
+            hero.y = ((maxRoomHeight+roomType.length)/2 + heroRoomY*maxRoomHeight - 0.5)*32;
+        }
+        if (heroDirection == "down") {
+            heroRoomY += 1;
+            let roomType = this.scene.rooms[this.scene.worldGrid[heroRoomY][heroRoomX]];
+            hero.y = ((maxRoomHeight-roomType.length)/2 + heroRoomY*maxRoomHeight + 0.5)*32;
+        }
+        this.scene.heroRoom = [heroRoomX, heroRoomY];
+        this.scene.skeletonSpawn();
+    }
+}
+
+class Monster extends Being {
+    constructor(scene, x, y, texture, frame) {
+        super(scene, x, y, texture, frame);
+        this.alive = true;
+    }
+}
+
+class Skeleton extends Monster {
+    constructor(scene, x, y, texture) {
+        super(scene, x, y, texture);
+        this.health = 50;
+        this.play('skel1idle');
+    }
+
+    update () {
+        if (!this.alive) {return}
+        if (this.x < hero.x) {
+            if (!skelright) {
+                this.setFlipX(false);
+            }
+            skelright = true;
+            this.body.setVelocityX(Math.cos(Math.atan((hero.y-this.y)/(hero.x-this.x)))*skeletonSpeed);
+            this.body.setVelocityY(Math.sin(Math.atan((hero.y-this.y)/(hero.x-this.x)))*skeletonSpeed);
+
+        }
+        if (this.x > hero.x) {
+            if (skelright) {
+                this.setFlipX(true);
+            }
+            skelright = false;
+            this.body.setVelocityX(-Math.cos(Math.atan((hero.y-this.y)/(hero.x-this.x)))*skeletonSpeed);
+            this.body.setVelocityY(-Math.sin(Math.atan((hero.y-this.y)/(hero.x-this.x)))*skeletonSpeed);
+        }
+    }
+
+    die() {
+        this.alive = false;
+        this.scene.skeletons.remove(this);
+        this.destroy();
     }
 }
 
@@ -146,26 +305,52 @@ class SceneMain extends Phaser.Scene {
     constructor() {
         super({key: 'SceneMain'});
     }
+
+    skeletonSpawn() {
+        let [heroRoomX, heroRoomY] = this.heroRoom;
+        let room = this.rooms[this.worldGrid[heroRoomY][heroRoomX]];
+        room.forEach((row, rowNum) => {
+            row.forEach((cell, columnNum) => {
+                const xOffset = heroRoomX*maxRoomWidth+(maxRoomWidth-row.length)/2;
+                const yOffset = heroRoomY*maxRoomHeight+(maxRoomHeight-room.length)/2;
+                if (cell == "x") {
+                    this.skeletons.add(new Skeleton(this, columnNum+xOffset, rowNum+yOffset, 'skel1-1'));
+                }
+            });
+        });
+    }
     
     preload() {
         this.load.spritesheet('tilesheet', 'assets/character_and_tileset/Dungeon_Tileset.png', {frameWidth: 16, frameHeight: 16});
         this.load.spritesheet('hero-idle', 'assets/Character_animation/hero/idle.png', {frameWidth: 16, frameHeight: 24});
         this.load.spritesheet('hero-run', 'assets/Character_animation/hero/run.png', {frameWidth: 16, frameHeight: 24});
         this.load.spritesheet('hero-attack', 'assets/Character_animation/hero/attack.png', {frameWidth: 24, frameHeight: 24});
+        this.load.image('skel1-1', 'assets/Character_animation/monsters_idle/skeleton1/v2/skeleton_v2_1.png');
+        this.load.image('skel1-2', 'assets/Character_animation/monsters_idle/skeleton1/v2/skeleton_v2_2.png');
+        this.load.image('skel1-3', 'assets/Character_animation/monsters_idle/skeleton1/v2/skeleton_v2_3.png');
+        this.load.image('skel1-4', 'assets/Character_animation/monsters_idle/skeleton1/v2/skeleton_v2_4.png');
+
     }
 
     create() {
-        var camera = this.cameras.main;
         up = this.input.keyboard.addKey('W');
         left = this.input.keyboard.addKey('A');
         down = this.input.keyboard.addKey('S');
         right = this.input.keyboard.addKey('D');
         space = this.input.keyboard.addKey('space');
         e = this.input.keyboard.addKey('E');
+        this.doors = this.add.group();
+        this.skeletons = this.add.group();
         this.anims.create({
-            key: 'doorleftopen',
-            frames: this.anims.generateFrameNumbers('tilesheet', {start: 37, end: 37}),
-            frameRate: 8
+            key: 'skel1idle',
+            frames: [
+                { key: 'skel1-1'},
+                { key: 'skel1-2'},
+                { key: 'skel1-3'},
+                { key: 'skel1-4'}
+            ],
+            frameRate: 8,
+            repeat: -1
         });
         this.anims.create({
             key: 'heroidleup',
@@ -235,19 +420,8 @@ class SceneMain extends Phaser.Scene {
             frames: this.anims.generateFrameNumbers('hero-attack', {start: 12, end: 15}),
             frameRate: 8
         })
-        this.anims.create({
-            key: 'sidetorch',
-            frames: [
-                { key: 'sidetorch1'},
-                { key: 'sidetorch2'},
-                { key: 'sidetorch3'},
-                { key: 'sidetorch4'}
-            ],
-            frameRate: 8,
-            repeat: -1
-        });
-        const worldGrid = [["tunnel","","","",""],["","","5x5empty","",""],["5x5vampires","tunnel","9x7empty","tunnel","tunnel"],["","","","",""],["","","","",""]];
-        const rooms = {
+        this.worldGrid = [["tunnel","","","",""],["","","5x5empty","",""],["5x5vampires","tunnel","9x7empty","tunnel","tunnel"],["","","","",""],["","","","",""]];
+        this.rooms = {
             "5x5empty": [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]],
             "tunnel": [["","","","",""],["","","","",""],["","","","",""]],
             "5x5vampires": [["","","","",""],["","x","","x",""],["","","","",""],["","x","","x",""],["","","","",""]],
@@ -255,138 +429,143 @@ class SceneMain extends Phaser.Scene {
             "": []
             //9x7 IS THE BIGGEST A ROOM CAN BE
         }
-        const maxRoomWidth = 11;
-        const maxRoomHeight = 9;
-        worldGrid.forEach((roomRow, roomRowNum) => {
+        this.worldGrid.forEach((roomRow, roomRowNum) => {
             roomRow.forEach((roomName, roomColNum) => {
-                const xRoomOffset = roomColNum*maxRoomWidth;
-                const yRoomOffset = roomRowNum*maxRoomHeight;
-                const mapCells = rooms[roomName];
-                mapCells.forEach((row, rowNum) => {
-                    row.forEach((cell, columnNum) => {
-                        const xCenterOffset = (maxRoomWidth-row.length)/2;
-                        const xOffset = xRoomOffset+xCenterOffset;
-                        const yCenterOffset = (maxRoomHeight-mapCells.length)/2;
-                        const yOffset = yRoomOffset+yCenterOffset;
-                        if (rowNum == 0 && columnNum == 0) {
-                            new EnvironmentObject(this, columnNum+xOffset, rowNum+yOffset, "q");
-                        }
-                        if (rowNum == 0 && columnNum != 0 && columnNum != row.length-1) {
-                            new EnvironmentObject(this, columnNum+xOffset, rowNum+yOffset, "w");
-                        }
-                        if (rowNum == 0 && columnNum == row.length-1) {
-                            new EnvironmentObject(this, columnNum+xOffset, rowNum+yOffset, "e");
-                        }
-                        if (rowNum != 0 && rowNum != mapCells.length-1 && columnNum == 0) {
-                            new EnvironmentObject(this, columnNum+xOffset, rowNum+yOffset, "a");
-                        }
-                        if (rowNum != 0 && rowNum != mapCells.length-1 && columnNum != 0 && columnNum != row.length-1) {
-                            new EnvironmentObject(this, columnNum+xOffset, rowNum+yOffset, "s");
-                        }
-                        if (rowNum != 0 && rowNum != mapCells.length-1 && columnNum == row.length-1) {
-                            new EnvironmentObject(this, columnNum+xOffset, rowNum+yOffset, "d");
-                        }
-                        if (rowNum == mapCells.length-1 && columnNum == 0) {
-                            new EnvironmentObject(this, columnNum+xOffset, rowNum+yOffset, "z");
-                        }
-                        if (rowNum == mapCells.length-1 && columnNum != 0 && columnNum != row.length-1) {
-                            new EnvironmentObject(this, columnNum+xOffset, rowNum+yOffset, "x");
-                        }
-                        if (rowNum == mapCells.length-1 && columnNum == row.length-1) {
-                            new EnvironmentObject(this, columnNum+xOffset, rowNum+yOffset, "c");
-                        }
-                    })
-                });
+                if (roomName != "") {
+                    const xRoomOffset = roomColNum*maxRoomWidth;
+                    const yRoomOffset = roomRowNum*maxRoomHeight;
+                    const mapCells = this.rooms[roomName];
+                    mapCells.forEach((row, rowNum) => {
+                        row.forEach((cell, columnNum) => {
+                            const xCenterOffset = (maxRoomWidth-row.length)/2;
+                            const xOffset = xRoomOffset+xCenterOffset;
+                            const yCenterOffset = (maxRoomHeight-mapCells.length)/2;
+                            const yOffset = yRoomOffset+yCenterOffset;
+                            if (rowNum == 0 && columnNum == 0) {
+                                new EnvironmentObject(this, columnNum+xOffset, rowNum+yOffset, "q");
+                            }
+                            if (rowNum == 0 && columnNum != 0 && columnNum != row.length-1) {
+                                new EnvironmentObject(this, columnNum+xOffset, rowNum+yOffset, "w");
+                            }
+                            if (rowNum == 0 && columnNum == row.length-1) {
+                                new EnvironmentObject(this, columnNum+xOffset, rowNum+yOffset, "e");
+                            }
+                            if (rowNum != 0 && rowNum != mapCells.length-1 && columnNum == 0) {
+                                new EnvironmentObject(this, columnNum+xOffset, rowNum+yOffset, "a");
+                            }
+                            if (rowNum != 0 && rowNum != mapCells.length-1 && columnNum != 0 && columnNum != row.length-1) {
+                                new EnvironmentObject(this, columnNum+xOffset, rowNum+yOffset, "s");
+                            }
+                            if (rowNum != 0 && rowNum != mapCells.length-1 && columnNum == row.length-1) {
+                                new EnvironmentObject(this, columnNum+xOffset, rowNum+yOffset, "d");
+                            }
+                            if (rowNum == mapCells.length-1 && columnNum == 0) {
+                                new EnvironmentObject(this, columnNum+xOffset, rowNum+yOffset, "z");
+                            }
+                            if (rowNum == mapCells.length-1 && columnNum != 0 && columnNum != row.length-1) {
+                                new EnvironmentObject(this, columnNum+xOffset, rowNum+yOffset, "x");
+                            }
+                            if (rowNum == mapCells.length-1 && columnNum == row.length-1) {
+                                new EnvironmentObject(this, columnNum+xOffset, rowNum+yOffset, "c");
+                            }
+                        })
+                    });
+                }
             })
         })
         hero = new Hero(this, 5.5+22, 4.5+18, 'hero-idle', 8).play('heroidledown');
-        worldGrid.forEach((roomRow, roomRowNum) => {
+        this.worldGrid.forEach((roomRow, roomRowNum) => {
             roomRow.forEach((roomName, roomColNum) => {
-                const xRoomOffset = roomColNum*maxRoomWidth;
-                const yRoomOffset = roomRowNum*maxRoomHeight;
-                const mapCells = rooms[roomName];
-                mapCells.forEach((row, rowNum) => {
-                    row.forEach((cell, columnNum) => {
-                        const xCenterOffset = (maxRoomWidth-row.length)/2;
-                        const xOffset = xRoomOffset+xCenterOffset;
-                        const yCenterOffset = (maxRoomHeight-mapCells.length)/2;
-                        const yOffset = yRoomOffset+yCenterOffset;
-                        if (rowNum == 0 && columnNum == 0) {
-                            new Wall(this, columnNum+xOffset - 1, rowNum+yOffset - 1, "7");
-                            new Wall(this, columnNum+xOffset, rowNum+yOffset - 1, "8");
-                            new Wall(this, columnNum+xOffset - 1, rowNum+yOffset, "4");
-                        }
-                        if (rowNum == 0 && columnNum != 0 && columnNum != row.length-1 && columnNum != (row.length-1)/2) {
-                            new Wall(this, columnNum+xOffset, rowNum+yOffset - 1, "8");
-                        }
-                        if (rowNum == 0 && columnNum == row.length-1) {
-                            new Wall(this, columnNum+xOffset, rowNum+yOffset - 1, "8");
-                            new Wall(this, columnNum+xOffset + 1, rowNum+yOffset - 1, "9");
-                            new Wall(this, columnNum+xOffset + 1, rowNum+yOffset, "6");
-                        }
-                        if (rowNum != 0 && rowNum != mapCells.length-1 && rowNum != (mapCells.length-1)/2 && columnNum == 0) {
-                            new Wall(this, columnNum+xOffset - 1, rowNum+yOffset, "4");
-                        }
-                        if (rowNum != 0 && rowNum != mapCells.length-1 && rowNum != (mapCells.length-1)/2 && columnNum == row.length-1) {
-                            new Wall(this, columnNum+xOffset + 1, rowNum+yOffset, "6");
-                        }
-                        if (rowNum == mapCells.length-1 && columnNum == 0) {
-                            new Wall(this, columnNum+xOffset - 1, rowNum+yOffset, "4");
-                            new Wall(this, columnNum+xOffset - 1, rowNum+yOffset + 1, "1");
-                            new Wall(this, columnNum+xOffset, rowNum+yOffset + 1, "2");
-                        }
-                        if (rowNum == mapCells.length-1 && columnNum != 0 && columnNum != row.length-1 && columnNum != (row.length-1)/2) {
-                            new Wall(this, columnNum+xOffset, rowNum+yOffset + 1, "2");
-                        }
-                        if (rowNum == mapCells.length-1 && columnNum == row.length-1) {
-                            new Wall(this, columnNum+xOffset + 1, rowNum+yOffset, "6");
-                            new Wall(this, columnNum+xOffset + 1, rowNum+yOffset + 1, "3");
-                            new Wall(this, columnNum+xOffset, rowNum+yOffset + 1, "2");
-                        }
-                        if (roomColNum > 0) {
-                            if (worldGrid[roomRowNum][roomColNum-1] != "") {
-                                new Door(this, xOffset - 1, 4 + roomRowNum*maxRoomHeight, "doorleft");
-                            } else {
-                                new Wall(this, xOffset - 1, 4 + roomRowNum*maxRoomHeight, "4");
-                            }
+                if (roomName != "") {
+                    const xRoomOffset = roomColNum*maxRoomWidth;
+                    const yRoomOffset = roomRowNum*maxRoomHeight;
+                    const mapCells = this.rooms[roomName];
+                    if (roomColNum > 0) {
+                        if (this.worldGrid[roomRowNum][roomColNum-1] != "") {
+                            this.doors.add(new Door(this, xRoomOffset+(maxRoomWidth-mapCells[0].length)/2 - 1, 4 + roomRowNum*maxRoomHeight, "doorleft"));
                         } else {
-                            new Wall(this, (maxRoomWidth-row.length)/2 - 1, 4 + roomRowNum*maxRoomHeight, "4");
+                            new Wall(this, xRoomOffset+(maxRoomWidth-mapCells[0].length)/2 - 1, 4 + roomRowNum*maxRoomHeight, "4");
                         }
-                        if (roomColNum < 4) {
-                            if (worldGrid[roomRowNum][roomColNum+1] != "") {
-                                new Door(this, (maxRoomWidth+row.length)/2 + roomColNum*maxRoomWidth, 4 + roomRowNum*maxRoomHeight, "doorright");
-                            } else {
-                                new Wall(this, (maxRoomWidth+row.length)/2 + roomColNum*maxRoomWidth, 4 + roomRowNum*maxRoomHeight, "6");
-                            }
+                    } else {
+                        new Wall(this, (maxRoomWidth-mapCells[0].length)/2 - 1, 4 + roomRowNum*maxRoomHeight, "4");
+                    }
+                    if (roomColNum < 4) {
+                        if (this.worldGrid[roomRowNum][roomColNum+1] != "") {
+                            this.doors.add(new Door(this, (maxRoomWidth+mapCells[0].length)/2 + roomColNum*maxRoomWidth, 4 + roomRowNum*maxRoomHeight, "doorright"));
                         } else {
-                            new Wall(this, (maxRoomWidth+row.length)/2 + 4*maxRoomWidth, 4 + roomRowNum*maxRoomHeight, "6");
+                            new Wall(this, (maxRoomWidth+mapCells[0].length)/2 + roomColNum*maxRoomWidth, 4 + roomRowNum*maxRoomHeight, "6");
                         }
-                        if (roomRowNum > 0) {
-                            if (worldGrid[roomRowNum-1][roomColNum] != "") {
-                                new Door(this, 5 + roomColNum*maxRoomWidth, (maxRoomHeight-mapCells.length)/2 + roomRowNum*maxRoomHeight - 1, "doortop");
-                            } else {
-                                new Wall(this, 5 + roomColNum*maxRoomWidth, (maxRoomHeight-mapCells.length)/2 + roomRowNum*maxRoomHeight - 1, "8");
-                            }
+                    } else {
+                        new Wall(this, (maxRoomWidth+mapCells[0].length)/2 + 4*maxRoomWidth, 4 + roomRowNum*maxRoomHeight, "6");
+                    }
+                    if (roomRowNum > 0) {
+                        if (this.worldGrid[roomRowNum-1][roomColNum] != "") {
+                            this.doors.add(new Door(this, 5 + roomColNum*maxRoomWidth, (maxRoomHeight-mapCells.length)/2 + roomRowNum*maxRoomHeight - 1, "doortop"));
                         } else {
-                            new Wall(this, 5 + roomColNum*maxRoomWidth, (maxRoomHeight-mapCells.length)/2 - 1, "8");
+                            new Wall(this, 5 + roomColNum*maxRoomWidth, (maxRoomHeight-mapCells.length)/2 + roomRowNum*maxRoomHeight - 1, "8");
                         }
-                        if (roomRowNum < 4) {
-                            if (worldGrid[roomRowNum+1][roomColNum] != "") {
-                                new Door(this, 5 + roomColNum*maxRoomWidth, (maxRoomHeight+mapCells.length)/2 + roomRowNum*maxRoomHeight, "doorbottom");
-                            } else {
-                                new Wall(this, 5 + roomColNum*maxRoomWidth, (maxRoomHeight+mapCells.length)/2 + roomRowNum*maxRoomHeight, "2");
-                            }
+                    } else {
+                        new Wall(this, 5 + roomColNum*maxRoomWidth, (maxRoomHeight-mapCells.length)/2 - 1, "8");
+                    }
+                    if (roomRowNum < 4) {
+                        if (this.worldGrid[roomRowNum+1][roomColNum] != "") {
+                            this.doors.add(new Door(this, 5 + roomColNum*maxRoomWidth, (maxRoomHeight+mapCells.length)/2 + roomRowNum*maxRoomHeight, "doorbottom"));
                         } else {
-                            new Wall(this, 5 + roomColNum*maxRoomWidth, (maxRoomHeight+mapCells.length)/2 + 4*maxRoomHeight, "2");
+                            new Wall(this, 5 + roomColNum*maxRoomWidth, (maxRoomHeight+mapCells.length)/2 + roomRowNum*maxRoomHeight, "2");
                         }
-                    })
-                });
+                    } else {
+                        new Wall(this, 5 + roomColNum*maxRoomWidth, (maxRoomHeight+mapCells.length)/2 + 4*maxRoomHeight, "2");
+                    }
+                    mapCells.forEach((row, rowNum) => {
+                        row.forEach((cell, columnNum) => {
+                            const xCenterOffset = (maxRoomWidth-row.length)/2;
+                            const xOffset = xRoomOffset+xCenterOffset;
+                            const yCenterOffset = (maxRoomHeight-mapCells.length)/2;
+                            const yOffset = yRoomOffset+yCenterOffset;
+                            if (rowNum == 0 && columnNum == 0) {
+                                new Wall(this, columnNum+xOffset - 1, rowNum+yOffset - 1, "7");
+                                new Wall(this, columnNum+xOffset, rowNum+yOffset - 1, "8");
+                                new Wall(this, columnNum+xOffset - 1, rowNum+yOffset, "4");
+                            }
+                            if (rowNum == 0 && columnNum != 0 && columnNum != row.length-1 && columnNum != (row.length-1)/2) {
+                                new Wall(this, columnNum+xOffset, rowNum+yOffset - 1, "8");
+                            }
+                            if (rowNum == 0 && columnNum == row.length-1) {
+                                new Wall(this, columnNum+xOffset, rowNum+yOffset - 1, "8");
+                                new Wall(this, columnNum+xOffset + 1, rowNum+yOffset - 1, "9");
+                                new Wall(this, columnNum+xOffset + 1, rowNum+yOffset, "6");
+                            }
+                            if (rowNum != 0 && rowNum != mapCells.length-1 && rowNum != (mapCells.length-1)/2 && columnNum == 0) {
+                                new Wall(this, columnNum+xOffset - 1, rowNum+yOffset, "4");
+                            }
+                            if (rowNum != 0 && rowNum != mapCells.length-1 && rowNum != (mapCells.length-1)/2 && columnNum == row.length-1) {
+                                new Wall(this, columnNum+xOffset + 1, rowNum+yOffset, "6");
+                            }
+                            if (rowNum == mapCells.length-1 && columnNum == 0) {
+                                new Wall(this, columnNum+xOffset - 1, rowNum+yOffset, "4");
+                                new Wall(this, columnNum+xOffset - 1, rowNum+yOffset + 1, "1");
+                                new Wall(this, columnNum+xOffset, rowNum+yOffset + 1, "2");
+                            }
+                            if (rowNum == mapCells.length-1 && columnNum != 0 && columnNum != row.length-1 && columnNum != (row.length-1)/2) {
+                                new Wall(this, columnNum+xOffset, rowNum+yOffset + 1, "2");
+                            }
+                            if (rowNum == mapCells.length-1 && columnNum == row.length-1) {
+                                new Wall(this, columnNum+xOffset + 1, rowNum+yOffset, "6");
+                                new Wall(this, columnNum+xOffset + 1, rowNum+yOffset + 1, "3");
+                                new Wall(this, columnNum+xOffset, rowNum+yOffset + 1, "2");
+                            }
+                            if (cell == "x") {
+
+                            }
+                        })
+                    });
+                }   
             })
         })
-        var camera = this.cameras.main;
-        camera.setViewport(0, 4*32, maxRoomWidth*32, maxRoomHeight*32);
-        camera.setBackgroundColor(0x25131A);
-        camera.setScroll(22*32, 18*32);
+        this.camera = this.cameras.main;
+        this.camera.setViewport(0, 4*32, maxRoomWidth*32, maxRoomHeight*32);
+        this.camera.setBackgroundColor(0x25131A);
+        this.camera.setScroll(22*32, 18*32);
         // camera.startFollow(hero);
         var minimap = this.cameras.add(4*32, 0.5*32, 3*32, 3*32);
         minimap.setBackgroundColor(0x000000);
@@ -395,14 +574,22 @@ class SceneMain extends Phaser.Scene {
     }
 
     update() {
+        this.heroRoom = [Math.floor(hero.x/32/11), Math.floor(hero.y/32/9)];
         hero.body.setVelocity(0, 0);
-        // if (e.isDown) {
-        //     if ((hero.x - door.x) * (hero.x - door.x) + (hero.y - door.y) * (hero.y - door.y) <= 64*64) {
-        //         door.play('doorleftopen');
-        //         if (heroDirection == "left") {
-        //         }
-        //     }
-        // }
+        this.skeletons.getChildren().forEach((skel) => {
+            skel.update();
+        });
+        if (e.isDown) {
+            if (!edown) {
+                this.doors.getChildren().forEach((door) => {
+                    door.update();
+                });
+                edown = true;
+            }
+        }
+        if (e.isUp) {
+            edown = false;
+        }
         if (up.isDown) {
             hero.body.setVelocityY(-64);
             if (!updown) {
