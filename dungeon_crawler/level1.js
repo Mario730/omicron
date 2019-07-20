@@ -12,7 +12,6 @@ var space;
 var attack;
 var e;
 var edown;
-let skelright = true;
 const skeletonSpeed = 10;
 const maxRoomWidth = 11;
 const maxRoomHeight = 9;
@@ -256,6 +255,11 @@ class Hero extends Being {
         }
         this.scene.heroRoom = [heroRoomX, heroRoomY];
         this.scene.skeletonSpawn();
+        this.scene.skeletons.getChildren().forEach((skeleton) => {
+            if (skeleton.x < heroRoomX*32*11 || skeleton.x > (heroRoomX+1)*32*11 || skeleton.y < heroRoomY*32*9 || skeleton.y > (heroRoomY+1)*32*9) {
+                skeleton.despawn();
+            }
+        });
     }
 }
 
@@ -271,24 +275,29 @@ class Skeleton extends Monster {
         super(scene, x, y, texture);
         this.health = 50;
         this.play('skel1idle');
+        this.spawnX = x;
+        this.spawnY = y;
+        this.skelright;
     }
 
     update () {
-        if (!this.alive) {return}
-        if (this.x < hero.x) {
-            if (!skelright) {
+        if (!this.alive) {
+            return;
+        }
+        if (this.x <= hero.x) {
+            if (!this.skelright) {
                 this.setFlipX(false);
+                this.skelright = true;
             }
-            skelright = true;
             this.body.setVelocityX(Math.cos(Math.atan((hero.y-this.y)/(hero.x-this.x)))*skeletonSpeed);
             this.body.setVelocityY(Math.sin(Math.atan((hero.y-this.y)/(hero.x-this.x)))*skeletonSpeed);
 
         }
         if (this.x > hero.x) {
-            if (skelright) {
+            if (this.skelright) {
                 this.setFlipX(true);
+                this.skelright = false;
             }
-            skelright = false;
             this.body.setVelocityX(-Math.cos(Math.atan((hero.y-this.y)/(hero.x-this.x)))*skeletonSpeed);
             this.body.setVelocityY(-Math.sin(Math.atan((hero.y-this.y)/(hero.x-this.x)))*skeletonSpeed);
         }
@@ -299,6 +308,18 @@ class Skeleton extends Monster {
         this.scene.skeletons.remove(this);
         this.destroy();
     }
+
+    despawn() {
+        this.alive = false;
+        this.body.setVelocity(0, 0);
+    }
+
+    respawn() {
+        this.alive = true;
+        this.x = this.spawnX*32;
+        this.y = this.spawnY*32;
+        debugger;
+    }
 }
 
 class SceneMain extends Phaser.Scene {
@@ -308,16 +329,29 @@ class SceneMain extends Phaser.Scene {
 
     skeletonSpawn() {
         let [heroRoomX, heroRoomY] = this.heroRoom;
-        let room = this.rooms[this.worldGrid[heroRoomY][heroRoomX]];
-        room.forEach((row, rowNum) => {
-            row.forEach((cell, columnNum) => {
-                const xOffset = heroRoomX*maxRoomWidth+(maxRoomWidth-row.length)/2;
-                const yOffset = heroRoomY*maxRoomHeight+(maxRoomHeight-room.length)/2;
-                if (cell == "x") {
-                    this.skeletons.add(new Skeleton(this, columnNum+xOffset, rowNum+yOffset, 'skel1-1'));
-                }
+        if (!this.spawnRooms[heroRoomX]) {
+            this.spawnRooms[heroRoomX] = [];
+        }
+        if (!this.spawnRooms[heroRoomX][heroRoomY]) {
+            this.spawnRooms[heroRoomX][heroRoomY] = [];
+            let room = this.rooms[this.worldGrid[heroRoomY][heroRoomX]];
+            room.forEach((row, rowNum) => {
+                row.forEach((cell, columnNum) => {
+                    const xOffset = heroRoomX*maxRoomWidth+(maxRoomWidth-row.length)/2;
+                    const yOffset = heroRoomY*maxRoomHeight+(maxRoomHeight-room.length)/2;
+                    if (cell == "x") {
+                        let skeleton = new Skeleton(this, columnNum+xOffset, rowNum+yOffset, 'skel1-1');
+                        this.skeletons.add(skeleton);
+                        this.spawnRooms[heroRoomX][heroRoomY].push(skeleton);
+                    }
+                });
             });
-        });
+        }
+        else {
+            this.spawnRooms[heroRoomX][heroRoomY].forEach((skeleton) => {
+                skeleton.respawn();
+            });
+        }
     }
     
     preload() {
@@ -341,6 +375,7 @@ class SceneMain extends Phaser.Scene {
         e = this.input.keyboard.addKey('E');
         this.doors = this.add.group();
         this.skeletons = this.add.group();
+        this.spawnRooms = [];
         this.anims.create({
             key: 'skel1idle',
             frames: [
