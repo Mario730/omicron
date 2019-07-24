@@ -109,9 +109,6 @@ class Wall extends EnvironmentObject {
         this.y = y*32+16;
         this.body.setSize(16, 16);
         this.scene.physics.add.collider(this, hero);
-        // this.scene.skeletons.getChildren().forEach((skel) => {
-        //     this.scene.physics.add.collider(this, skel);
-        // });
     }
 }
 
@@ -134,78 +131,34 @@ class Door extends EnvironmentObject {
         if ((hero.x - this.x) * (hero.x - this.x) + (hero.y - this.y) * (hero.y - this.y) <= 64*64) {
             if (heroDirection == "left") {
                 if (this.doorType == "doorleft") {
-                    this.scene.tweens.addCounter({
-                        from: 0,
-                        to: 700,
-                        duration: 700,
-                        onStart: () => {
-                            this.setFrame(37);
-                            this.scene.camera.fade(1000, 0x000000);
-                        },
-                        onComplete: () => {
-                            this.scene.camera.scrollX -= 11*32;
-                            this.setFrame(48);
-                            hero.warpToRoom();
-                            this.scene.camera.fadeIn(1000, 0x000000);
-                        }
-                    });
+                    this.scene.camera.scrollX -= 11*32;
+                    this.setFrame(48);
+                    hero.warpToRoom();
+                    this.scene.camera.fadeIn(1000, 0x000000);
                 }
             }
             if (heroDirection == "up") {
                 if (this.doorType == "doortop") {
-                    this.scene.tweens.addCounter({
-                        from: 0,
-                        to: 700,
-                        duration: 700,
-                        onStart: () => {
-                            this.setFrame(58);
-                            this.scene.camera.fade(1000, 0x000000);
-                        },
-                        onComplete: () => {
-                            this.scene.camera.scrollY -= 9*32;
-                            this.setFrame(37);
-                            hero.warpToRoom();
-                            this.scene.camera.fadeIn(1000, 0x000000);
-                        }
-                    });
+                    this.scene.camera.scrollY -= 9*32;
+                    this.setFrame(37);
+                    hero.warpToRoom();
+                    this.scene.camera.fadeIn(1000, 0x000000);
                 }
             }
             if (heroDirection == "right") {
                 if (this.doorType == "doorright") {
-                    this.scene.tweens.addCounter({
-                        from: 0,
-                        to: 700,
-                        duration: 700,
-                        onStart: () => {
-                            this.setFrame(36);
-                            this.scene.camera.fade(1000, 0x000000);
-                        },
-                        onComplete: () => {
-                            this.scene.camera.scrollX += 11*32;
-                            this.setFrame(47);
-                            hero.warpToRoom();
-                            this.scene.camera.fadeIn(1000, 0x000000);
-                        }
-                    });
+                    this.scene.camera.scrollX += 11*32;
+                    this.setFrame(47);
+                    hero.warpToRoom();
+                    this.scene.camera.fadeIn(1000, 0x000000);
                 }
             }
             if (heroDirection == "down") {
                 if (this.doorType == "doorbottom") {
-                    this.scene.tweens.addCounter({
-                        from: 0,
-                        to: 700,
-                        duration: 700,
-                        onStart: () => {
-                            this.setFrame(47);
-                            this.scene.camera.fade(1000, 0x000000);
-                        },
-                        onComplete: () => {
-                            this.scene.camera.scrollY += 9*32;
-                            this.setFrame(36);
-                            hero.warpToRoom();
-                            this.scene.camera.fadeIn(1000, 0x000000);
-                        }
-                    });
+                    this.scene.camera.scrollY += 9*32;
+                    this.setFrame(36);
+                    hero.warpToRoom();
+                    this.scene.camera.fadeIn(1000, 0x000000);
                 }
             }
         }
@@ -246,12 +199,12 @@ class Hero extends Being {
         if (heroDirection == "up") {
             heroRoomY -= 1;
             let roomType = this.scene.rooms[this.scene.worldGrid[heroRoomY][heroRoomX]];
-            hero.y = ((maxRoomHeight+roomType.length)/2 + heroRoomY*maxRoomHeight - 0.5)*32;
+            hero.y = ((maxRoomHeight+roomType.length)/2 + heroRoomY*maxRoomHeight - 0.75)*32;
         }
         if (heroDirection == "down") {
             heroRoomY += 1;
             let roomType = this.scene.rooms[this.scene.worldGrid[heroRoomY][heroRoomX]];
-            hero.y = ((maxRoomHeight-roomType.length)/2 + heroRoomY*maxRoomHeight + 0.5)*32;
+            hero.y = ((maxRoomHeight-roomType.length)/2 + heroRoomY*maxRoomHeight + 0.75)*32;
         }
         this.scene.heroRoom = [heroRoomX, heroRoomY];
         this.scene.skeletonSpawn();
@@ -318,7 +271,6 @@ class Skeleton extends Monster {
         this.alive = true;
         this.x = this.spawnX*32;
         this.y = this.spawnY*32;
-        debugger;
     }
 }
 
@@ -337,11 +289,14 @@ class SceneMain extends Phaser.Scene {
             let room = this.rooms[this.worldGrid[heroRoomY][heroRoomX]];
             room.forEach((row, rowNum) => {
                 row.forEach((cell, columnNum) => {
-                    const xOffset = heroRoomX*maxRoomWidth+(maxRoomWidth-row.length)/2;
-                    const yOffset = heroRoomY*maxRoomHeight+(maxRoomHeight-room.length)/2;
+                    const xOffset = heroRoomX*maxRoomWidth+(maxRoomWidth-row.length)/2 + 0.5;
+                    const yOffset = heroRoomY*maxRoomHeight+(maxRoomHeight-room.length)/2 + 0.5;
                     if (cell == "x") {
                         let skeleton = new Skeleton(this, columnNum+xOffset, rowNum+yOffset, 'skel1-1');
                         this.skeletons.add(skeleton);
+                        this.walls.getChildren().forEach((wall) => {
+                            this.physics.add.collider(skeleton, wall);
+                        });
                         this.spawnRooms[heroRoomX][heroRoomY].push(skeleton);
                     }
                 });
@@ -375,6 +330,7 @@ class SceneMain extends Phaser.Scene {
         e = this.input.keyboard.addKey('E');
         this.doors = this.add.group();
         this.skeletons = this.add.group();
+        this.walls = this.add.group();
         this.spawnRooms = [];
         this.anims.create({
             key: 'skel1idle',
@@ -455,9 +411,10 @@ class SceneMain extends Phaser.Scene {
             frames: this.anims.generateFrameNumbers('hero-attack', {start: 12, end: 15}),
             frameRate: 8
         })
-        this.worldGrid = [["tunnel","","","",""],["","","5x5empty","",""],["5x5vampires","tunnel","9x7empty","tunnel","tunnel"],["","","","",""],["","","","",""]];
+        this.worldGrid = [["tunnel","","","",""],["","","5x5empty","",""],["5x5vampires","tunnel","9x7empty","tunnel","tunnel"],["","","5x5skeleton","",""],["","","","",""]];
         this.rooms = {
             "5x5empty": [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]],
+            "5x5skeleton": [["","","","",""],["","","","",""],["","","x","",""],["","","","",""],["","","","",""]],
             "tunnel": [["","","","",""],["","","","",""],["","","","",""]],
             "5x5vampires": [["","","","",""],["","x","","x",""],["","","","",""],["","x","","x",""],["","","","",""]],
             "9x7empty": [["","","","","","","","",""],["","","","","","","","",""],["","","","","","","","",""],["","","","","","","","",""],["","","","","","","","",""],["","","","","","","","",""],["","","","","","","","",""]],
@@ -519,37 +476,37 @@ class SceneMain extends Phaser.Scene {
                         if (this.worldGrid[roomRowNum][roomColNum-1] != "") {
                             this.doors.add(new Door(this, xRoomOffset+(maxRoomWidth-mapCells[0].length)/2 - 1, 4 + roomRowNum*maxRoomHeight, "doorleft"));
                         } else {
-                            new Wall(this, xRoomOffset+(maxRoomWidth-mapCells[0].length)/2 - 1, 4 + roomRowNum*maxRoomHeight, "4");
+                            this.walls.add(new Wall(this, xRoomOffset+(maxRoomWidth-mapCells[0].length)/2 - 1, 4 + roomRowNum*maxRoomHeight, "4"));
                         }
                     } else {
-                        new Wall(this, (maxRoomWidth-mapCells[0].length)/2 - 1, 4 + roomRowNum*maxRoomHeight, "4");
+                        this.walls.add(new Wall(this, (maxRoomWidth-mapCells[0].length)/2 - 1, 4 + roomRowNum*maxRoomHeight, "4"));
                     }
                     if (roomColNum < 4) {
                         if (this.worldGrid[roomRowNum][roomColNum+1] != "") {
                             this.doors.add(new Door(this, (maxRoomWidth+mapCells[0].length)/2 + roomColNum*maxRoomWidth, 4 + roomRowNum*maxRoomHeight, "doorright"));
                         } else {
-                            new Wall(this, (maxRoomWidth+mapCells[0].length)/2 + roomColNum*maxRoomWidth, 4 + roomRowNum*maxRoomHeight, "6");
+                            this.walls.add(new Wall(this, (maxRoomWidth+mapCells[0].length)/2 + roomColNum*maxRoomWidth, 4 + roomRowNum*maxRoomHeight, "6"));
                         }
                     } else {
-                        new Wall(this, (maxRoomWidth+mapCells[0].length)/2 + 4*maxRoomWidth, 4 + roomRowNum*maxRoomHeight, "6");
+                        this.walls.add(new Wall(this, (maxRoomWidth+mapCells[0].length)/2 + 4*maxRoomWidth, 4 + roomRowNum*maxRoomHeight, "6"));
                     }
                     if (roomRowNum > 0) {
                         if (this.worldGrid[roomRowNum-1][roomColNum] != "") {
                             this.doors.add(new Door(this, 5 + roomColNum*maxRoomWidth, (maxRoomHeight-mapCells.length)/2 + roomRowNum*maxRoomHeight - 1, "doortop"));
                         } else {
-                            new Wall(this, 5 + roomColNum*maxRoomWidth, (maxRoomHeight-mapCells.length)/2 + roomRowNum*maxRoomHeight - 1, "8");
+                            this.walls.add(new Wall(this, 5 + roomColNum*maxRoomWidth, (maxRoomHeight-mapCells.length)/2 + roomRowNum*maxRoomHeight - 1, "8"));
                         }
                     } else {
-                        new Wall(this, 5 + roomColNum*maxRoomWidth, (maxRoomHeight-mapCells.length)/2 - 1, "8");
+                        this.walls.add(new Wall(this, 5 + roomColNum*maxRoomWidth, (maxRoomHeight-mapCells.length)/2 - 1, "8"));
                     }
                     if (roomRowNum < 4) {
                         if (this.worldGrid[roomRowNum+1][roomColNum] != "") {
                             this.doors.add(new Door(this, 5 + roomColNum*maxRoomWidth, (maxRoomHeight+mapCells.length)/2 + roomRowNum*maxRoomHeight, "doorbottom"));
                         } else {
-                            new Wall(this, 5 + roomColNum*maxRoomWidth, (maxRoomHeight+mapCells.length)/2 + roomRowNum*maxRoomHeight, "2");
+                            this.walls.add(new Wall(this, 5 + roomColNum*maxRoomWidth, (maxRoomHeight+mapCells.length)/2 + roomRowNum*maxRoomHeight, "2"));
                         }
                     } else {
-                        new Wall(this, 5 + roomColNum*maxRoomWidth, (maxRoomHeight+mapCells.length)/2 + 4*maxRoomHeight, "2");
+                        this.walls.add(new Wall(this, 5 + roomColNum*maxRoomWidth, (maxRoomHeight+mapCells.length)/2 + 4*maxRoomHeight, "2"));
                     }
                     mapCells.forEach((row, rowNum) => {
                         row.forEach((cell, columnNum) => {
@@ -558,39 +515,36 @@ class SceneMain extends Phaser.Scene {
                             const yCenterOffset = (maxRoomHeight-mapCells.length)/2;
                             const yOffset = yRoomOffset+yCenterOffset;
                             if (rowNum == 0 && columnNum == 0) {
-                                new Wall(this, columnNum+xOffset - 1, rowNum+yOffset - 1, "7");
-                                new Wall(this, columnNum+xOffset, rowNum+yOffset - 1, "8");
-                                new Wall(this, columnNum+xOffset - 1, rowNum+yOffset, "4");
+                                this.walls.add(new Wall(this, columnNum+xOffset - 1, rowNum+yOffset - 1, "7"));
+                                this.walls.add(new Wall(this, columnNum+xOffset, rowNum+yOffset - 1, "8"));
+                                this.walls.add(new Wall(this, columnNum+xOffset - 1, rowNum+yOffset, "4"));
                             }
                             if (rowNum == 0 && columnNum != 0 && columnNum != row.length-1 && columnNum != (row.length-1)/2) {
-                                new Wall(this, columnNum+xOffset, rowNum+yOffset - 1, "8");
+                                this.walls.add(new Wall(this, columnNum+xOffset, rowNum+yOffset - 1, "8"));
                             }
                             if (rowNum == 0 && columnNum == row.length-1) {
-                                new Wall(this, columnNum+xOffset, rowNum+yOffset - 1, "8");
-                                new Wall(this, columnNum+xOffset + 1, rowNum+yOffset - 1, "9");
-                                new Wall(this, columnNum+xOffset + 1, rowNum+yOffset, "6");
+                                this.walls.add(new Wall(this, columnNum+xOffset, rowNum+yOffset - 1, "8"));
+                                this.walls.add(new Wall(this, columnNum+xOffset + 1, rowNum+yOffset - 1, "9"));
+                                this.walls.add(new Wall(this, columnNum+xOffset + 1, rowNum+yOffset, "6"));
                             }
                             if (rowNum != 0 && rowNum != mapCells.length-1 && rowNum != (mapCells.length-1)/2 && columnNum == 0) {
-                                new Wall(this, columnNum+xOffset - 1, rowNum+yOffset, "4");
+                                this.walls.add(new Wall(this, columnNum+xOffset - 1, rowNum+yOffset, "4"));
                             }
                             if (rowNum != 0 && rowNum != mapCells.length-1 && rowNum != (mapCells.length-1)/2 && columnNum == row.length-1) {
-                                new Wall(this, columnNum+xOffset + 1, rowNum+yOffset, "6");
+                                this.walls.add(new Wall(this, columnNum+xOffset + 1, rowNum+yOffset, "6"));
                             }
                             if (rowNum == mapCells.length-1 && columnNum == 0) {
-                                new Wall(this, columnNum+xOffset - 1, rowNum+yOffset, "4");
-                                new Wall(this, columnNum+xOffset - 1, rowNum+yOffset + 1, "1");
-                                new Wall(this, columnNum+xOffset, rowNum+yOffset + 1, "2");
+                                this.walls.add(new Wall(this, columnNum+xOffset - 1, rowNum+yOffset, "4"));
+                                this.walls.add(new Wall(this, columnNum+xOffset - 1, rowNum+yOffset + 1, "1"));
+                                this.walls.add(new Wall(this, columnNum+xOffset, rowNum+yOffset + 1, "2"));
                             }
                             if (rowNum == mapCells.length-1 && columnNum != 0 && columnNum != row.length-1 && columnNum != (row.length-1)/2) {
-                                new Wall(this, columnNum+xOffset, rowNum+yOffset + 1, "2");
+                                this.walls.add(new Wall(this, columnNum+xOffset, rowNum+yOffset + 1, "2"));
                             }
                             if (rowNum == mapCells.length-1 && columnNum == row.length-1) {
-                                new Wall(this, columnNum+xOffset + 1, rowNum+yOffset, "6");
-                                new Wall(this, columnNum+xOffset + 1, rowNum+yOffset + 1, "3");
-                                new Wall(this, columnNum+xOffset, rowNum+yOffset + 1, "2");
-                            }
-                            if (cell == "x") {
-
+                                this.walls.add(new Wall(this, columnNum+xOffset + 1, rowNum+yOffset, "6"));
+                                this.walls.add(new Wall(this, columnNum+xOffset + 1, rowNum+yOffset + 1, "3"));
+                                this.walls.add(new Wall(this, columnNum+xOffset, rowNum+yOffset + 1, "2"));
                             }
                         })
                     });
@@ -628,7 +582,7 @@ class SceneMain extends Phaser.Scene {
         if (up.isDown) {
             hero.body.setVelocityY(-64);
             if (!updown) {
-                if (!attack) {
+                if (!attack && !left.isDown && !down.isDown && !right.isDown) {
                     hero.play('heroup');
                 }
                 heroDirection = "up";
@@ -637,7 +591,7 @@ class SceneMain extends Phaser.Scene {
         }
         if (up.isUp) {
             if (updown) {
-                if (!attack) {
+                if (!attack && !left.isDown && !down.isDown && !right.isDown) {
                     hero.play('heroidleup');
                 }
                 updown = false;
@@ -646,7 +600,7 @@ class SceneMain extends Phaser.Scene {
         if (left.isDown) {
             hero.body.setVelocityX(-64);
             if (!leftdown) {
-                if (!attack) {
+                if (!attack && !up.isDown && !down.isDown && !right.isDown) {
                     hero.play('heroleft');
                 }
                 heroDirection = "left";
@@ -655,7 +609,7 @@ class SceneMain extends Phaser.Scene {
         }
         if (left.isUp) {
             if (leftdown) {
-                if (!attack) {
+                if (!attack && !up.isDown && !down.isDown && !right.isDown) {
                     hero.play('heroidleleft');
                 }
                 leftdown = false;
@@ -664,7 +618,7 @@ class SceneMain extends Phaser.Scene {
         if (down.isDown) {
             hero.body.setVelocityY(64);
             if (!downdown) {
-                if (!attack) {
+                if (!attack && !up.isDown && !left.isDown && !right.isDown) {
                     hero.play('herodown');
                 }
                 heroDirection = "down";
@@ -673,7 +627,7 @@ class SceneMain extends Phaser.Scene {
         }
         if (down.isUp) {
             if (downdown) {
-                if (!attack) {
+                if (!attack && !up.isDown && !left.isDown && !right.isDown) {
                     hero.play('heroidledown');
                 }
                 downdown = false;
@@ -682,7 +636,7 @@ class SceneMain extends Phaser.Scene {
         if (right.isDown) {
             hero.body.setVelocityX(64);
             if (!rightdown) {
-                if (!attack) {
+                if (!attack && !up.isDown && !left.isDown && !down.isDown) {
                     hero.play('heroright');
                 }
                 heroDirection = "right";
@@ -691,7 +645,7 @@ class SceneMain extends Phaser.Scene {
         }
         if (right.isUp) {
             if (rightdown) {
-                if (!attack) {
+                if (!attack && !up.isDown && !left.isDown && !down.isDown) {
                     hero.play('heroidleright');
                 }
                 rightdown = false;
