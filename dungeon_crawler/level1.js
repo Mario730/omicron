@@ -12,6 +12,7 @@ var space;
 var attack;
 var e;
 var edown;
+var leftrightdown;
 const skeletonSpeed = 10;
 const maxRoomWidth = 11;
 const maxRoomHeight = 9;
@@ -254,6 +255,14 @@ class Skeleton extends Monster {
             this.body.setVelocityX(-Math.cos(Math.atan((hero.y-this.y)/(hero.x-this.x)))*skeletonSpeed);
             this.body.setVelocityY(-Math.sin(Math.atan((hero.y-this.y)/(hero.x-this.x)))*skeletonSpeed);
         }
+        if (this.health <= 0) {
+            // this.scene.tweens.addCounter({
+            //     duration: 500,
+            //     onComplete: () => {
+                    this.die();
+            //     }
+            // });
+        }
     }
 
     die() {
@@ -271,6 +280,33 @@ class Skeleton extends Monster {
         this.alive = true;
         this.x = this.spawnX*32;
         this.y = this.spawnY*32;
+    }
+
+    hit() {
+        if ((this.y - hero.y)^2 < 16^2) {
+            if (heroDirection == "right") {
+                if (this.x - hero.x < 52 && this.x - hero.x >=0) {
+                    this.health -= 25;
+                }
+            }
+            if (heroDirection == "left") {
+                if (hero.x - this.x < 52 && hero.x - this.x >=0) {
+                    this.health -= 25;
+                }
+            }
+        }
+        if ((this.x - hero.x)^2 < 16^2) {
+            if (heroDirection == "down") {
+                if (this.y - hero.y < 52 && this.y - hero.y >=0) {
+                    this.health -= 25;
+                }
+            }
+            if (heroDirection == "up") {
+                if (hero.y - this.y < 52 && hero.y - this.y >=0) {
+                    this.health -= 25;
+                }
+            }
+        }
     }
 }
 
@@ -585,6 +621,9 @@ class SceneMain extends Phaser.Scene {
                 if (!attack && !left.isDown && !down.isDown && !right.isDown) {
                     hero.play('heroup');
                 }
+                if (!attack && leftrightdown) {
+                    hero.play('heroup');
+                }
                 heroDirection = "up";
                 updown = true;
             }
@@ -594,13 +633,16 @@ class SceneMain extends Phaser.Scene {
                 if (!attack && !left.isDown && !down.isDown && !right.isDown) {
                     hero.play('heroidleup');
                 }
+                if (!attack && leftrightdown) {
+                    hero.play('heroidleup');
+                }
                 updown = false;
             }
         }
         if (left.isDown) {
             hero.body.setVelocityX(-64);
             if (!leftdown) {
-                if (!attack && !up.isDown && !down.isDown && !right.isDown) {
+                if (!attack && !up.isDown && !down.isDown) {
                     hero.play('heroleft');
                 }
                 heroDirection = "left";
@@ -612,6 +654,10 @@ class SceneMain extends Phaser.Scene {
                 if (!attack && !up.isDown && !down.isDown && !right.isDown) {
                     hero.play('heroidleleft');
                 }
+                if (!attack && right.isDown) {
+                    hero.play('heroright');
+                    heroDirection = "right";
+                }
                 leftdown = false;
             }
         }
@@ -619,6 +665,9 @@ class SceneMain extends Phaser.Scene {
             hero.body.setVelocityY(64);
             if (!downdown) {
                 if (!attack && !up.isDown && !left.isDown && !right.isDown) {
+                    hero.play('herodown');
+                }
+                if (!attack && leftrightdown) {
                     hero.play('herodown');
                 }
                 heroDirection = "down";
@@ -630,13 +679,16 @@ class SceneMain extends Phaser.Scene {
                 if (!attack && !up.isDown && !left.isDown && !right.isDown) {
                     hero.play('heroidledown');
                 }
+                if (!attack && leftrightdown) {
+                    hero.play('heroidledown');
+                }
                 downdown = false;
             }
         }
         if (right.isDown) {
             hero.body.setVelocityX(64);
             if (!rightdown) {
-                if (!attack && !up.isDown && !left.isDown && !down.isDown) {
+                if (!attack && !up.isDown && !down.isDown) {
                     hero.play('heroright');
                 }
                 heroDirection = "right";
@@ -648,17 +700,38 @@ class SceneMain extends Phaser.Scene {
                 if (!attack && !up.isDown && !left.isDown && !down.isDown) {
                     hero.play('heroidleright');
                 }
+                if (!attack && left.isDown) {
+                    hero.play('heroleft');
+                    heroDirection = "left";
+                }
                 rightdown = false;
             }
+        }
+        if (rightdown && leftdown) {
+            if (!updown && !downdown) {
+                if (!leftrightdown) {
+                    heroDirection = "down";
+                    hero.play('heroidledown');
+                    leftrightdown = true;
+                }
+            }
+            hero.body.setVelocityX(0);
+        }
+        if (!rightdown || !leftdown) {
+            leftrightdown = false;
         }
         if (heroDirection == "up") {
             if (space.isDown) {
                 if (!attack) {
+                    this.skeletons.getChildren().forEach((skeleton) => {
+                        skeleton.hit();
+                    });
                     this.tweens.addCounter({
                         duration: 500,
                         onStart: () => {
                             hero.play('heroattackup');
                             attack = true;
+                            
                         },
                         onComplete: () => {
                             hero.play('heroidleup');
@@ -671,6 +744,9 @@ class SceneMain extends Phaser.Scene {
         if (heroDirection == "left") {
             if (space.isDown) {
                 if (!attack) {
+                    this.skeletons.getChildren().forEach((skeleton) => {
+                        skeleton.hit();
+                    });
                     this.tweens.addCounter({
                         duration: 500,
                         onStart: () => {
@@ -688,6 +764,9 @@ class SceneMain extends Phaser.Scene {
         if (heroDirection == "down") {
             if (space.isDown) {
                 if (!attack) {
+                    this.skeletons.getChildren().forEach((skeleton) => {
+                        skeleton.hit();
+                    });
                     this.tweens.addCounter({
                         duration: 500,
                         onStart: () => {
@@ -705,6 +784,9 @@ class SceneMain extends Phaser.Scene {
         if (heroDirection == "right") {
             if (space.isDown) {
                 if (!attack) {
+                    this.skeletons.getChildren().forEach((skeleton) => {
+                        skeleton.hit();
+                    });
                     this.tweens.addCounter({
                         duration: 500,
                         onStart: () => {
